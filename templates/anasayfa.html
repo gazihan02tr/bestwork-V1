@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+
+{% block title %}Ana Sayfa{% endblock %}
+
+{% block content %}
+<!-- Top Announcement Bar -->
+<div class="bg-primary-600 text-white py-2.5 px-4 text-center text-sm font-medium">
+    🎉 Yeni Üyelere Özel %20 İndirim + 50 PV Hediye!
+</div>
+
+<!-- Sticky Header -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md3-2">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <!-- Logo -->
+            <a href="/" class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-md3-lg gradient-primary flex items-center justify-center">
+                    <span class="text-white font-bold text-xl">BW</span>
+                </div>
+                <span class="text-xl font-bold text-gray-900">BestWork</span>
+            </a>
+            
+            <!-- Center Navigation -->
+            <nav class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-6">
+                <a href="/" class="flex items-center space-x-1.5 text-gray-700 hover:text-primary-600 font-medium transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span>Ana Sayfa</span>
+                </a>
+                <a href="/sertifikalar" class="flex items-center space-x-1.5 text-gray-700 hover:text-primary-600 font-medium transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                    <span>Sertifikalar</span>
+                </a>
+                <a href="/urunler" class="flex items-center space-x-1.5 text-gray-700 hover:text-primary-600 font-medium transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    <span>E-Shop</span>
+                </a>
+                <a href="/kurumsal" class="flex items-center space-x-1.5 text-gray-700 hover:text-primary-600 font-medium transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <span>Kurumsal</span>
+                </a>
+                <a href="/iletisim" class="flex items-center space-x-1.5 text-gray-700 hover:text-primary-600 font-medium transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <span>İletişim</span>
+                </a>
+            </nav>
+            
+            <!-- Right Actions -->
+            <div class="flex items-center space-x-4">
+                <a href="/sepet/1" class="relative p-2 hover:bg-surface-container rounded-md3-lg transition">
+                    <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    <span class="absolute -top-1 -right-1 bg-secondary-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+                </a>
+                <a href="/dashboard" class="px-4 py-2 text-sm font-semibold text-primary-600 hover:bg-primary-50 rounded-md3-full transition">Giriş</a>
+                <a href="/dashboard" class="px-4 py-2 text-sm font-semibold text-white gradient-primary rounded-md3-full shadow-md3-2 hover:shadow-md3-3 transition">Üye Ol</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Hero Slider Section -->
+<section class="relative overflow-hidden py-8">
+    <div class="w-[95%] max-w-[1600px] mx-auto">
+        <div class="relative rounded-md3-2xl overflow-hidden shadow-md3-4">
+            <!-- Slider Container -->
+            <div id="heroSlider" class="relative h-[400px] lg:h-[600px]">
+                <!-- Slide 1 -->
+                <div class="slider-item absolute inset-0 transition-opacity duration-700 opacity-100" data-slide="1">
+                    <a href="/dashboard" class="block w-full h-full">
+                        <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1600&h=600&fit=crop" alt="Slide 1" class="w-full h-full object-cover">
+                    </a>
+                </div>
+
+                <!-- Slide 2 -->
+                <div class="slider-item absolute inset-0 transition-opacity duration-700 opacity-0" data-slide="2">
+                    <a href="/urunler" class="block w-full h-full">
+                        <img src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1600&h=600&fit=crop" alt="Slide 2" class="w-full h-full object-cover">
+                    </a>
+                </div>
+
+                <!-- Slide 3 -->
+                <div class="slider-item absolute inset-0 transition-opacity duration-700 opacity-0" data-slide="3">
+                    <a href="/sertifikalar" class="block w-full h-full">
+                        <img src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=1600&h=600&fit=crop" alt="Slide 3" class="w-full h-full object-cover">
+                    </a>
+                </div>
+
+                <!-- Slide 4 -->
+                <div class="slider-item absolute inset-0 transition-opacity duration-700 opacity-0" data-slide="4">
+                    <a href="/kurumsal" class="block w-full h-full">
+                        <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&h=600&fit=crop" alt="Slide 4" class="w-full h-full object-cover">
+                    </a>
+                </div>
+            </div>
+
+            <!-- Navigation Arrows -->
+            <button onclick="prevSlide()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white shadow-md3-3 flex items-center justify-center transition-all hover:scale-110 z-10">
+                <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <button onclick="nextSlide()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white shadow-md3-3 flex items-center justify-center transition-all hover:scale-110 z-10">
+                <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+
+            <!-- Dots Indicator -->
+            <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
+                <button onclick="goToSlide(1)" class="slider-dot w-3 h-3 rounded-full bg-white shadow-md transition-all" data-dot="1"></button>
+                <button onclick="goToSlide(2)" class="slider-dot w-3 h-3 rounded-full bg-white/50 shadow-md transition-all" data-dot="2"></button>
+                <button onclick="goToSlide(3)" class="slider-dot w-3 h-3 rounded-full bg-white/50 shadow-md transition-all" data-dot="3"></button>
+                <button onclick="goToSlide(4)" class="slider-dot w-3 h-3 rounded-full bg-white/50 shadow-md transition-all" data-dot="4"></button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+let currentSlide = 1;
+const totalSlides = 4;
+let autoSlideInterval;
+
+function showSlide(n) {
+    const slides = document.querySelectorAll('.slider-item');
+    const dots = document.querySelectorAll('.slider-dot');
+    
+    if (n > totalSlides) currentSlide = 1;
+    if (n < 1) currentSlide = totalSlides;
+    else currentSlide = n;
+    
+    slides.forEach((slide) => {
+        if (parseInt(slide.dataset.slide) === currentSlide) {
+            slide.classList.remove('opacity-0');
+            slide.classList.add('opacity-100');
+        } else {
+            slide.classList.remove('opacity-100');
+            slide.classList.add('opacity-0');
+        }
+    });
+    
+    dots.forEach((dot) => {
+        if (parseInt(dot.dataset.dot) === currentSlide) {
+            dot.classList.remove('bg-white/50');
+            dot.classList.add('bg-white', 'scale-125');
+        } else {
+            dot.classList.remove('bg-white', 'scale-125');
+            dot.classList.add('bg-white/50');
+        }
+    });
+}
+
+function nextSlide() {
+    showSlide(currentSlide + 1);
+    resetAutoSlide();
+}
+
+function prevSlide() {
+    showSlide(currentSlide - 1);
+    resetAutoSlide();
+}
+
+function goToSlide(n) {
+    showSlide(n);
+    resetAutoSlide();
+}
+
+function startAutoSlide() {
+    autoSlideInterval = setInterval(() => {
+        nextSlide();
+    }, 5000);
+}
+
+function resetAutoSlide() {
+    clearInterval(autoSlideInterval);
+    startAutoSlide();
+}
+
+startAutoSlide();
+</script>
+
+<!-- Categories Section -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Ürün Kategorileri</h2>
+            <p class="text-lg text-gray-600">Her ihtiyaca özel, kaliteli ürün çeşitleri</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {% for kategori in kategoriler %}
+            <a href="/kategori/{{ kategori.id }}" class="group">
+                <div class="bg-surface-container rounded-md3-xl p-6 text-center hover:shadow-md3-3 transition-all transform hover:-translate-y-2">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-md3-lg gradient-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="text-3xl">{{ ['🧴', '💊', '🌿', '🏋️'][loop.index0 % 4] }}</span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1">{{ kategori.ad }}</h3>
+                    <p class="text-sm text-gray-600">{{ kategori.aciklama[:40] if kategori.aciklama else '' }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="py-16 bg-gradient-to-br from-primary-50 to-secondary-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-12">
+            <div>
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Öne Çıkan Ürünler</h2>
+                <p class="text-lg text-gray-600">En çok tercih edilen ürünlerimiz</p>
+            </div>
+            <a href="/urunler" class="text-primary-600 font-semibold hover:text-primary-700 flex items-center space-x-2">
+                <span>Tümünü Gör</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for urun in urunler[:4] %}
+            <div class="bg-white rounded-md3-xl overflow-hidden shadow-md3-2 hover:shadow-md3-4 transition-all transform hover:-translate-y-2 group">
+                <div class="relative">
+                    <img src="{{ urun.resim_url or 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600' }}" alt="{{ urun.ad }}" class="w-full h-52 object-cover">
+                    {% if urun.indirimli_fiyat %}
+                    <div class="absolute top-3 right-3 bg-secondary-500 text-white text-xs font-bold px-3 py-1 rounded-md3-full">
+                        -%{{ ((urun.fiyat - urun.indirimli_fiyat) / urun.fiyat * 100) | int }}
+                    </div>
+                    {% endif %}
+                    {% if urun.pv_degeri > 0 %}
+                    <div class="absolute top-3 left-3 bg-accent-500 text-white text-xs font-bold px-3 py-1 rounded-md3-full">
+                        {{ urun.pv_degeri }} PV
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="p-5 space-y-3">
+                    <h3 class="font-bold text-gray-900 text-lg group-hover:text-primary-600 transition">{{ urun.ad }}</h3>
+                    <p class="text-sm text-gray-600 line-clamp-2">{{ urun.aciklama }}</p>
+                    <div class="flex items-baseline space-x-2">
+                        {% if urun.indirimli_fiyat %}
+                        <span class="text-2xl font-extrabold text-primary-600">{{ urun.indirimli_fiyat }} ₺</span>
+                        <span class="text-sm text-gray-400 line-through">{{ urun.fiyat }} ₺</span>
+                        {% else %}
+                        <span class="text-2xl font-extrabold text-primary-600">{{ urun.fiyat }} ₺</span>
+                        {% endif %}
+                    </div>
+                    <form action="/api/sepet/1/ekle" method="POST">
+                        <input type="hidden" name="urun_id" value="{{ urun.id }}">
+                        <input type="hidden" name="adet" value="1">
+                        <button type="submit" class="w-full py-3 gradient-primary text-white font-bold rounded-md3-lg shadow-md3-1 hover:shadow-md3-3 transition-all">
+                            Sepete Ekle
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-3">Neden BestWork?</h2>
+            <p class="text-lg text-gray-600">Network marketing'te fark yaratan avantajlarımız</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="text-center p-8 bg-surface-container rounded-md3-2xl hover:shadow-md3-3 transition">
+                <div class="w-20 h-20 mx-auto mb-6 rounded-md3-full gradient-gold flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Yüksek Kazanç</h3>
+                <p class="text-gray-600">Adil prim sistemi ve sürekli gelir imkanı. İlk aydan itibaren kazanmaya başlayın.</p>
+            </div>
+            <div class="text-center p-8 bg-surface-container rounded-md3-2xl hover:shadow-md3-3 transition">
+                <div class="w-20 h-20 mx-auto mb-6 rounded-md3-full gradient-primary flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Kaliteli Ürünler</h3>
+                <p class="text-gray-600">Sertifikalı, test edilmiş ürünlerle güvenle satış yapın. Müşteri memnuniyeti garantili.</p>
+            </div>
+            <div class="text-center p-8 bg-surface-container rounded-md3-2xl hover:shadow-md3-3 transition">
+                <div class="w-20 h-20 mx-auto mb-6 rounded-md3-full gradient-accent flex items-center justify-center">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Güçlü Ekip</h3>
+                <p class="text-gray-600">Eğitim ve mentorluk desteği ile büyüyen bir toplulukta yerinizi alın.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 gradient-primary relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl"></div>
+    </div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-4xl font-extrabold text-white mb-6">Başarı Hikayeniz Burada Başlıyor</h2>
+        <p class="text-xl text-purple-100 mb-8 leading-relaxed">Binlerce üyemiz gibi siz de financial freedom'a giden yolda ilk adımı atın. Bugün üye olun, yarın kazanmaya başlayın.</p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="/dashboard" class="px-10 py-4 text-lg font-bold text-primary-600 bg-white rounded-md3-xl shadow-md3-4 hover:shadow-md3-5 hover:scale-105 transition-all">
+                Ücretsiz Üye Ol
+            </a>
+            <a href="/dashboard" class="px-10 py-4 text-lg font-bold text-white border-2 border-white rounded-md3-xl hover:bg-white hover:text-primary-600 transition-all">
+                Bize Ulaşın
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Trust Badges Footer -->
+<section class="py-12 bg-gray-50 border-t border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center opacity-60">
+            <div class="text-center">
+                <div class="text-4xl mb-2">🔒</div>
+                <div class="text-sm font-semibold text-gray-700">Güvenli Ödeme</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl mb-2">🚚</div>
+                <div class="text-sm font-semibold text-gray-700">Hızlı Kargo</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl mb-2">↩️</div>
+                <div class="text-sm font-semibold text-gray-700">Kolay İade</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl mb-2">💬</div>
+                <div class="text-sm font-semibold text-gray-700">7/24 Destek</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <div class="w-10 h-10 rounded-md3-lg gradient-primary flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">BW</span>
+                    </div>
+                    <span class="text-xl font-bold text-white">BestWork</span>
+                </div>
+                <p class="text-sm text-gray-400">Network marketing'te yeni nesil. Kaliteli ürünler, adil sistem, sürdürülebilir gelir.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4">Hızlı Bağlantılar</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/dashboard" class="hover:text-white transition">Hakkımızda</a></li>
+                    <li><a href="/urunler" class="hover:text-white transition">Ürünler</a></li>
+                    <li><a href="/dashboard" class="hover:text-white transition">Üye Ol</a></li>
+                    <li><a href="/dashboard" class="hover:text-white transition">İletişim</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4">Destek</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/dashboard" class="hover:text-white transition">Sıkça Sorulan Sorular</a></li>
+                    <li><a href="/dashboard" class="hover:text-white transition">Gizlilik Politikası</a></li>
+                    <li><a href="/dashboard" class="hover:text-white transition">Kullanım Koşulları</a></li>
+                    <li><a href="/dashboard" class="hover:text-white transition">İade ve Değişim</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-bold mb-4">İletişim</h4>
+                <ul class="space-y-2 text-sm">
+                    <li>📧 info@bestwork.com</li>
+                    <li>📞 0850 123 45 67</li>
+                    <li>📍 İstanbul, Türkiye</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}

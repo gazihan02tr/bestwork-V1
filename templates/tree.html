@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Binary Organizasyon Şeması (D3.js){% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#f8fafc] p-4 lg:p-8">
+    <div class="max-w-7xl mx-auto bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden h-[85vh] relative">
+        
+        <div class="absolute top-6 left-6 z-10 bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-primary/10 shadow-sm">
+            <h1 class="text-xl font-bold text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined">account_tree</span>
+                Organizasyon Şeması
+            </h1>
+            <p class="text-xs text-gray-500 mt-1">Mouse ile sürükleyebilir ve büyütebilirsiniz.</p>
+        </div>
+
+        <div id="tree-viz" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+    </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<script>
+async function initTree() {
+    const response = await fetch('/api/tree/{{ user_id }}');
+    const data = await response.json();
+
+    const width = document.getElementById('tree-viz').clientWidth;
+    const height = document.getElementById('tree-viz').clientHeight;
+
+
+    const svg = d3.select("#tree-viz")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g");
+
+    // Zoom ve Pan Özelliği
+    d3.select("svg").call(d3.zoom().on("zoom", (event) => {
+        svg.attr("transform", event.transform);
+    }));
+
+    const treeLayout = d3.tree().nodeSize([200, 150]);
+    const root = d3.hierarchy(data);
+    treeLayout(root);
+
+    // Bağlantı Çizgileri
+    svg.selectAll(".link")
+        .data(root.links())
+        .enter()
+        .append("path")
+        .attr("class", "link")
+        .attr("d", d3.linkVertical()
+            .x(d => d.x + width/2)
+            .y(d => d.y + 100))
+        .attr("fill", "none")
+        .attr("stroke", "#e2e8f0")
+        .attr("stroke-width", 2);
+
+    // Üye Kutucukları (Nodes)
+    const nodes = svg.selectAll(".node")
+        .data(root.descendants())
+        .enter()
+        .append("g")
+        .attr("transform", d => `translate(${d.x + width/2},${d.y + 100})`);
+
+    // Kutucuk Arka Planı
+    nodes.append("rect")
+        .attr("width", 160)
+        .attr("height", 60)
+        .attr("x", -80)
+        .attr("y", -30)
+        .attr("rx", 15)
+        .attr("fill", d => d.data.id === null ? "#f8fafc" : "white")
+        .attr("stroke", d => d.data.id === null ? "#e2e8f0" : "#7C3AED")
+        .attr("stroke-dasharray", d => d.data.id === null ? "5,5" : "0");
+
+    // Üye İsmi
+    nodes.append("text")
+        .attr("text-anchor", "middle")
+        .attr("dy", -5)
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("fill", "#1e293b")
+        .text(d => d.data.name);
+
+    // Puan Bilgisi (PV)
+    nodes.append("text")
+        .attr("text-anchor", "middle")
+        .attr("dy", 15)
+        .attr("font-size", "10px")
+        .attr("fill", "#64748b")
+        .text(d => d.data.pv || "");
+}
+
+initTree();
+</script>
+
+<style>
+    .link { transition: stroke 0.3s; }
+    .node rect { transition: all 0.3s; }
+    .node:hover rect { fill: #f5f3ff; stroke-width: 3px; }
+</style>
+{% endblock %}

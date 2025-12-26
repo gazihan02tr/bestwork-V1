@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ urun.ad }} - BestWork Shop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #764ba2;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #764ba2;
+        }
+
+        .cart-btn {
+            background: #764ba2;
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .product-detail {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .product-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            padding: 3rem;
+        }
+
+        .product-image-container {
+            position: relative;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .product-content h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .product-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: #f0f0f0;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .pv-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .product-price {
+            margin: 2rem 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 15px;
+        }
+
+        .price-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-current {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .price-old {
+            font-size: 1.5rem;
+            color: #999;
+            text-decoration: line-through;
+            margin-left: 1rem;
+        }
+
+        .discount-percent {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 1rem;
+        }
+
+        .product-description {
+            margin: 2rem 0;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .product-description h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .quantity-selector label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #764ba2;
+            background: white;
+            color: #764ba2;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #764ba2;
+            color: white;
+        }
+
+        .quantity-input {
+            width: 80px;
+            height: 40px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.5rem;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 2rem;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(118, 75, 162, 0.4);
+        }
+
+        .stock-info {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            border-radius: 5px;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .stock-low {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+            color: #e65100;
+        }
+
+        @media (max-width: 768px) {
+            .product-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="/" class="logo">🛍️ BestWork Shop</a>
+            <nav class="nav-menu">
+                <a href="/" class="nav-link">Anasayfa</a>
+                <a href="/sepet/1" class="cart-btn">🛒 Sepetim</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="product-detail">
+            <div class="product-layout">
+                <div class="product-image-container">
+                    <img src="{{ urun.resim_url or 'https://via.placeholder.com/600x500/764ba2/ffffff?text=' + urun.ad }}" 
+                         alt="{{ urun.ad }}" class="product-image">
+                    {% if urun.indirimli_fiyat %}
+                    <div class="discount-badge">
+                        {{ ((urun.fiyat - urun.indirimli_fiyat) / urun.fiyat * 100)|round|int }}% İNDİRİM
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="product-content">
+                    <h1>{{ urun.ad }}</h1>
+
+                    <div class="product-meta">
+                        <span class="meta-badge">🏷️ Kategori ID: {{ urun.kategori_id or 'Genel' }}</span>
+                        {% if urun.pv_degeri > 0 %}
+                        <span class="pv-badge">⭐ {{ urun.pv_degeri }} PV Kazanç</span>
+                        {% endif %}
+                    </div>
+
+                    {% if urun.stok > 0 %}
+                        {% if urun.stok <= 10 %}
+                        <div class="stock-info stock-low">
+                            ⚠️ Son {{ urun.stok }} adet kaldı!
+                        </div>
+                        {% else %}
+                        <div class="stock-info">
+                            ✅ Stokta mevcut ({{ urun.stok }} adet)
+                        </div>
+                        {% endif %}
+                    {% else %}
+                    <div class="stock-info stock-low">
+                        ❌ Stokta yok
+                    </div>
+                    {% endif %}
+
+                    <div class="product-price">
+                        <div class="price-label">Fiyat</div>
+                        <div>
+                            {% if urun.indirimli_fiyat %}
+                                <span class="price-current">{{ urun.indirimli_fiyat }} ₺</span>
+                                <span class="price-old">{{ urun.fiyat }} ₺</span>
+                                <span class="discount-percent">
+                                    -{{ ((urun.fiyat - urun.indirimli_fiyat) / urun.fiyat * 100)|round|int }}%
+                                </span>
+                            {% else %}
+                                <span class="price-current">{{ urun.fiyat }} ₺</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="product-description">
+                        <h3>📝 Ürün Açıklaması</h3>
+                        <p>{{ urun.aciklama or 'Ürün açıklaması henüz eklenmemiş.' }}</p>
+                    </div>
+
+                    <form action="/api/sepet/1/ekle" method="POST" id="addToCartForm">
+                        <input type="hidden" name="urun_id" value="{{ urun.id }}">
+                        
+                        <div class="quantity-selector">
+                            <label>Adet:</label>
+                            <div class="quantity-controls">
+                                <button type="button" class="quantity-btn" onclick="decreaseQuantity()">-</button>
+                                <input type="number" name="adet" id="adet" value="1" min="1" max="{{ urun.stok }}" class="quantity-input">
+                                <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
+                            </div>
+                        </div>
+
+                        {% if urun.stok > 0 %}
+                        <button type="submit" class="add-to-cart-btn">
+                            🛒 Sepete Ekle
+                        </button>
+                        {% else %}
+                        <button type="button" class="add-to-cart-btn" disabled style="opacity: 0.5; cursor: not-allowed;">
+                            Stokta Yok
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const maxStock = {{ urun.stok }};
+
+        function increaseQuantity() {
+            const input = document.getElementById('adet');
+            const currentValue = parseInt(input.value);
+            if (currentValue < maxStock) {
+                input.value = currentValue + 1;
+            }
+        }
+
+        function decreaseQuantity() {
+            const input = document.getElementById('adet');
+            const currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+            }
+        }
+    </script>
+</body>
+</html>

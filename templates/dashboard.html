@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Kullanıcı Paneli{% endblock %}
+
+{% block content %}
+<div class="max-w-[85%] mx-auto mt-7 px-4 sm:px-6 lg:px-8 space-y-8 relative z-0">
+    <div class="grid grid-cols-1 lg:grid-cols-[320px,1fr] gap-8">
+        <aside class="bg-white rounded-3xl shadow-xl border border-outline-variant/40 overflow-hidden">
+            <div class="px-6 py-6 bg-gradient-to-b from-primary/70 to-primary text-white text-center">
+                <div class="relative w-36 h-36 mx-auto rounded-full overflow-hidden shadow-xl shadow-black/20 bg-white/10 border border-white/40">
+                    <img src="https://ui-avatars.com/api/?name={{ ozet.tam_ad }}&background=random" alt="Profil" class="w-full h-full object-cover">
+                </div>
+                <h2 class="mt-4 text-xl font-semibold">{{ ozet.tam_ad }}</h2>
+                <p class="text-sm opacity-80">{{ ozet.rutbe }}</p>
+            </div>
+            <div class="px-6 py-6 space-y-6">
+                <div class="space-y-1 text-center">
+                    <p class="text-xs uppercase tracking-wide text-amber-500 font-semibold">Üye ID</p>
+                    <p class="text-lg font-semibold text-on-surface">#{{ ozet.id }}</p>
+                </div>
+            </div>
+        </aside>
+
+        <div class="space-y-6">
+            <div class="px-8 py-10 bg-white rounded-3xl shadow-2xl">
+                <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    
+                    <div class="relative rounded-2xl p-6 text-white overflow-hidden bg-gradient-to-br from-purple-600 to-indigo-700 shadow-lg h-full">
+                        <p class="text-xs uppercase tracking-wide text-white/70 mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">payments</span> Toplam Kazanç
+                        </p>
+                        <p class="text-3xl font-semibold">{{ ozet.toplam_cv }} CV</p>
+                        <span class="absolute -top-5 -right-5 material-symbols-outlined text-6xl text-white/20">account_balance_wallet</span>
+                    </div>
+
+                    <div class="relative rounded-2xl p-6 text-white overflow-hidden bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg h-full">
+                        <p class="text-xs uppercase tracking-wide text-white/70 mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">arrow_back</span> Sol Kol PV
+                        </p>
+                        <p class="text-3xl font-semibold">{{ ozet.mevcut_sol_pv }} PV</p>
+                        <p class="text-xs mt-2 text-white/70">Ekip: {{ ozet.toplam_sol_ekip }} Kişi</p>
+                    </div>
+
+                    <div class="relative rounded-2xl p-6 text-white overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg h-full">
+                        <p class="text-xs uppercase tracking-wide text-white/70 mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span> Sağ Kol PV
+                        </p>
+                        <p class="text-3xl font-semibold">{{ ozet.mevcut_sag_pv }} PV</p>
+                        <p class="text-xs mt-2 text-white/70">Ekip: {{ ozet.toplam_sag_ekip }} Kişi</p>
+                    </div>
+
+                </div>
+
+                <div class="mt-10 overflow-hidden rounded-2xl border border-outline-variant/30">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-surface-variant/50 text-on-surface-variant font-semibold">
+                            <tr>
+                                <th class="px-6 py-4">İşlem</th>
+                                <th class="px-6 py-4">Miktar</th>
+                                <th class="px-6 py-4">Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant/20">
+                            {% for log in ekstre %}
+                            <tr class="hover:bg-primary/5 transition">
+                                <td class="px-6 py-4 font-medium">{{ log.islem_tipi }}</td>
+                                <td class="px-6 py-4 text-primary font-bold">+{{ log.miktar }}</td>
+                                <td class="px-6 py-4 text-on-surface-variant">{{ log.aciklama }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

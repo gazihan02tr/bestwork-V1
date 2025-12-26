@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepetim - BestWork Shop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #764ba2;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #764ba2;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-title {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .cart-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .cart-items {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 120px 1fr auto;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            align-items: center;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+
+        .item-details h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .item-price {
+            color: #764ba2;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .item-quantity {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .item-total {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .remove-btn:hover {
+            background: #ee5a52;
+        }
+
+        .cart-summary {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .summary-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            font-size: 1.1rem;
+        }
+
+        .summary-label {
+            color: #666;
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .summary-total {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .total-label {
+            font-size: 1.3rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .total-value {
+            font-size: 2rem;
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .pv-info {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .pv-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .checkout-form {
+            margin-top: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1.5rem;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(118, 75, 162, 0.4);
+        }
+
+        .checkout-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-cart {
+            background: white;
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            grid-column: 1 / -1;
+        }
+
+        .empty-cart-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-cart h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .empty-cart p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .shop-btn {
+            background: #764ba2;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+
+        .shop-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 968px) {
+            .cart-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-item {
+                grid-template-columns: 100px 1fr;
+                gap: 1rem;
+            }
+
+            .item-actions {
+                grid-column: 1 / -1;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="/" class="logo">🛍️ BestWork Shop</a>
+            <nav class="nav-menu">
+                <a href="/" class="nav-link">Anasayfa</a>
+                <a href="/panel/{{ kullanici_id }}" class="nav-link">Panelim</a>
+                <a href="/siparisler/{{ kullanici_id }}" class="nav-link">Siparişlerim</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">🛒 Sepetim</h1>
+
+        {% if sepet.urunler %}
+        <div class="cart-container">
+            <div class="cart-items">
+                {% for item in sepet.urunler %}
+                <div class="cart-item">
+                    <img src="{{ item.urun.resim_url or 'https://via.placeholder.com/150x150/764ba2/ffffff?text=' + item.urun.ad }}" 
+                         alt="{{ item.urun.ad }}" class="item-image">
+                    
+                    <div class="item-details">
+                        <h3>{{ item.urun.ad }}</h3>
+                        <div class="item-price">
+                            {% if item.urun.indirimli_fiyat %}
+                                {{ item.urun.indirimli_fiyat }} ₺
+                            {% else %}
+                                {{ item.urun.fiyat }} ₺
+                            {% endif %}
+                        </div>
+                        <div class="item-quantity">Adet: {{ item.adet }}</div>
+                        {% if item.urun.pv_degeri > 0 %}
+                        <div style="color: #764ba2; font-weight: 600; margin-top: 0.5rem;">
+                            ⭐ {{ item.urun.pv_degeri * item.adet }} PV
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="item-actions">
+                        <div class="item-total">{{ item.toplam }} ₺</div>
+                        <a href="/api/sepet/{{ kullanici_id }}/cikar/{{ item.id }}" class="remove-btn">
+                            🗑️ Kaldır
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="cart-summary">
+                <h2 class="summary-title">📋 Sipariş Özeti</h2>
+
+                <div class="summary-row">
+                    <span class="summary-label">Ürün Sayısı:</span>
+                    <span class="summary-value">{{ sepet.toplam_adet }} adet</span>
+                </div>
+
+                <div class="summary-row">
+                    <span class="summary-label">Ara Toplam:</span>
+                    <span class="summary-value">{{ sepet.toplam_fiyat }} ₺</span>
+                </div>
+
+                <div class="pv-info">
+                    <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                        Kazanacağınız PV Puanı
+                    </div>
+                    <div class="pv-value">
+                        ⭐ {{ sepet.urunler|sum(attribute='urun.pv_degeri')|int * sepet.toplam_adet }} PV
+                    </div>
+                </div>
+
+                <div class="summary-total">
+                    <div class="summary-row">
+                        <span class="total-label">Toplam:</span>
+                        <span class="total-value">{{ sepet.toplam_fiyat }} ₺</span>
+                    </div>
+                </div>
+
+                <form action="/api/siparis/{{ kullanici_id }}/olustur" method="POST" class="checkout-form">
+                    <div class="form-group">
+                        <label class="form-label">📍 Teslimat Adresi</label>
+                        <textarea name="adres" class="form-input" rows="4" 
+                                  placeholder="Adresinizi buraya yazın..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="checkout-btn">
+                        💳 Siparişi Tamamla
+                    </button>
+                </form>
+
+                <div style="text-align: center; margin-top: 1.5rem; color: #666; font-size: 0.9rem;">
+                    🔒 Güvenli alışveriş garantisi
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-cart">
+            <div class="empty-cart-icon">🛒</div>
+            <h2>Sepetiniz Boş</h2>
+            <p>Henüz sepetinize ürün eklemediniz. Hemen alışverişe başlayın!</p>
+            <a href="/" class="shop-btn">🛍️ Alışverişe Başla</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

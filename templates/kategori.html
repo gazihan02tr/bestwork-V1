@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ kategori.ad }}{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md3-2">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <a href="/" class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-md3-lg gradient-primary flex items-center justify-center">
+                    <span class="text-white font-bold text-xl">BW</span>
+                </div>
+                <span class="text-xl font-bold text-gray-900">BestWork</span>
+            </a>
+            <div class="flex items-center space-x-4">
+                <a href="/sepet/1" class="relative p-2 hover:bg-surface-container rounded-md3-lg transition">
+                    <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                </a>
+                <a href="/dashboard" class="px-4 py-2 text-sm font-semibold text-white gradient-primary rounded-md3-full shadow-md3-2 hover:shadow-md3-3 transition">Dashboard</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <span class="inline-block px-4 py-1.5 bg-primary-100 text-primary-700 text-sm font-semibold rounded-md3-full mb-3">Kategori</span>
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-2">{{ kategori.ad }}</h1>
+            <p class="text-lg text-gray-600">{{ kategori.aciklama or 'Bu kategori network marketing ürünleriniz için hazır.' }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% if urunler %}
+                {% for urun in urunler %}
+                <div class="bg-white rounded-md3-xl overflow-hidden shadow-md3-2 hover:shadow-md3-4 transition-all transform hover:-translate-y-2 group">
+                    <div class="relative">
+                        <a href="/urun/{{ urun.id }}">
+                            <img src="{{ urun.resim_url or 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600' }}" alt="{{ urun.ad }}" class="w-full h-52 object-cover">
+                        </a>
+                        {% if urun.indirimli_fiyat %}
+                        <div class="absolute top-3 right-3 bg-secondary-500 text-white text-xs font-bold px-3 py-1 rounded-md3-full">
+                            -%{{ ((urun.fiyat - urun.indirimli_fiyat) / urun.fiyat * 100) | int }}
+                        </div>
+                        {% endif %}
+                        {% if urun.pv_degeri > 0 %}
+                        <div class="absolute top-3 left-3 bg-accent-500 text-white text-xs font-bold px-3 py-1 rounded-md3-full">
+                            {{ urun.pv_degeri }} PV
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <a href="/urun/{{ urun.id }}">
+                            <h3 class="font-bold text-gray-900 text-lg group-hover:text-primary-600 transition">{{ urun.ad }}</h3>
+                        </a>
+                        <p class="text-sm text-gray-600 line-clamp-2">{{ urun.aciklama[:80] if urun.aciklama else '' }}</p>
+                        <div class="flex items-baseline space-x-2">
+                            {% if urun.indirimli_fiyat %}
+                            <span class="text-2xl font-extrabold text-primary-600">{{ urun.indirimli_fiyat }} ₺</span>
+                            <span class="text-sm text-gray-400 line-through">{{ urun.fiyat }} ₺</span>
+                            {% else %}
+                            <span class="text-2xl font-extrabold text-primary-600">{{ urun.fiyat }} ₺</span>
+                            {% endif %}
+                        </div>
+                        <form action="/api/sepet/1/ekle" method="POST">
+                            <input type="hidden" name="urun_id" value="{{ urun.id }}">
+                            <input type="hidden" name="adet" value="1">
+                            <button type="submit" class="w-full py-3 gradient-primary text-white font-bold rounded-md3-lg shadow-md3-1 hover:shadow-md3-3 transition-all">
+                                Sepete Ekle
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-span-full bg-white rounded-md3-xl p-12 text-center shadow-md3-2">
+                    <svg class="w-20 h-20 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Bu kategoride henüz ürün yok</h3>
+                    <p class="text-gray-600 mb-6">Yakında yeni ürünler eklenecek</p>
+                    <a href="/" class="inline-block px-8 py-3 gradient-primary text-white font-bold rounded-md3-xl shadow-md3-2 hover:shadow-md3-3 transition">
+                        Ana Sayfaya Dön
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
