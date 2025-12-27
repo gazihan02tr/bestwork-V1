@@ -293,6 +293,36 @@ def siparisler_sayfasi(request: Request, kullanici_id: int, db: Session = Depend
         "kullanici_id": kullanici_id
     })
 
+# MAĞAZA (TÜM ÜRÜNLER)
+@app.get("/urunler", response_class=HTMLResponse)
+def magaza_sayfasi(request: Request, db: Session = Depends(get_db)):
+    kategoriler = crud.kategorileri_listele(db)
+    urunler = crud.urunleri_listele(db, limit=100)
+    
+    # Kategori ürün sayılarını hesapla
+    for kat in kategoriler:
+        kat.urun_sayisi = db.query(models.Urun).filter(models.Urun.kategori_id == kat.id, models.Urun.aktif == True).count()
+
+    return templates.TemplateResponse("magaza.html", {
+        "request": request,
+        "kategoriler": kategoriler,
+        "urunler": urunler
+    })
+
+# SERTİFİKALAR
+@app.get("/sertifikalar", response_class=HTMLResponse)
+def sertifikalar_sayfasi(request: Request):
+    return templates.TemplateResponse("sertifikalar.html", {
+        "request": request
+    })
+
+# KURUMSAL
+@app.get("/kurumsal", response_class=HTMLResponse)
+def kurumsal_sayfasi(request: Request):
+    return templates.TemplateResponse("kurumsal.html", {
+        "request": request
+    })
+
 # ADMİN: Ürün Ekleme
 @app.get("/admin/urun/ekle", response_class=HTMLResponse)
 def admin_urun_ekle_form(request: Request, db: Session = Depends(get_db)):
@@ -334,4 +364,30 @@ def admin_urunler(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("admin_urunler.html", {
         "request": request,
         "urunler": urunler
+    })
+
+# --- İLETİŞİM SAYFASI ---
+@app.get("/iletisim", response_class=HTMLResponse)
+async def iletisim_sayfasi(request: Request):
+    return templates.TemplateResponse("iletisim.html", {"request": request})
+
+@app.post("/iletisim", response_class=HTMLResponse)
+async def iletisim_formu_gonder(
+    request: Request,
+    ad_soyad: str = Form(...),
+    email: str = Form(...),
+    konu: str = Form(...),
+    mesaj: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    yeni_mesaj = schemas.IletisimCreate(
+        ad_soyad=ad_soyad,
+        email=email,
+        konu=konu,
+        mesaj=mesaj
+    )
+    kayit = crud.create_iletisim_mesaji(db, yeni_mesaj)
+    return templates.TemplateResponse("iletisim.html", {
+        "request": request,
+        "basari_mesaji": f"Mesajınız başarıyla alındı. Takip Numaranız: {kayit.takip_no}"
     })

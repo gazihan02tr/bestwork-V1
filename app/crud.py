@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from fastapi import HTTPException
 from datetime import datetime
+import uuid
 
 # --- YARDIMCI: CÜZDAN HAREKETİ KAYDET ---
 def log_yaz(db: Session, user_id: int, miktar: float, tip: str, mesaj: str):
@@ -353,3 +354,18 @@ def kariyer_guncelle(db: Session, kullanici_id: int):
         db.commit()
         # İsteğe bağlı: Rütbe değişimini günlüğe kaydet
         log_yaz(db, kullanici.id, 0, "RANK_UP", f"Yeni Kariyer: {yeni_rutbe}")
+
+# --- İLETİŞİM MESAJI OLUŞTUR ---
+def create_iletisim_mesaji(db: Session, mesaj: schemas.IletisimCreate):
+    takip_no = str(uuid.uuid4().hex[:8]).upper()
+    db_mesaj = models.IletisimMesaji(
+        ad_soyad=mesaj.ad_soyad,
+        email=mesaj.email,
+        konu=mesaj.konu,
+        mesaj=mesaj.mesaj,
+        takip_no=takip_no
+    )
+    db.add(db_mesaj)
+    db.commit()
+    db.refresh(db_mesaj)
+    return db_mesaj

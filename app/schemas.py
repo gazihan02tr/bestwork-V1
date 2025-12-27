@@ -49,6 +49,13 @@ class DashboardOzet(BaseModel):
     mevcut_sag_pv: int
     toplam_sol_ekip: int
     toplam_sag_ekip: int
+
+class IletisimCreate(BaseModel):
+    ad_soyad: str
+    email: EmailStr
+    konu: str
+    mesaj: str
+    toplam_sag_ekip: int
     referans_sayisi: int # Doğrudan getirdiği kişi sayısı
 
     class Config:

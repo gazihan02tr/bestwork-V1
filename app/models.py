@@ -51,6 +51,18 @@ class CuzdanHareket(Base):
     aciklama = Column(String)
     tarih = Column(DateTime, default=datetime.utcnow)
 
+class IletisimMesaji(Base):
+    __tablename__ = "iletisim_mesajlari"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ad_soyad = Column(String)
+    email = Column(String)
+    konu = Column(String)
+    mesaj = Column(Text)
+    takip_no = Column(String, unique=True, index=True)
+    tarih = Column(DateTime, default=datetime.utcnow)
+    durum = Column(String, default="Beklemede") # Beklemede, Okundu, Cevaplandı
+
 class NesilAyari(Base):
     __tablename__ = "nesil_ayarlari"
     id = Column(Integer, primary_key=True, index=True)
