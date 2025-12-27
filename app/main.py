@@ -13,6 +13,25 @@ app = FastAPI(title="BestWork Binary Network Marketing")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# --- MIDDLEWARE: KULLANICI BİLGİSİNİ YÜKLE ---
+@app.middleware("http")
+async def add_user_to_request(request: Request, call_next):
+    user_id = request.cookies.get("user_id")
+    request.state.user = None
+    if user_id:
+        db = SessionLocal()
+        try:
+            user = db.query(models.Kullanici).filter(models.Kullanici.id == int(user_id)).first()
+            if user:
+                request.state.user = user
+        except:
+            pass
+        finally:
+            db.close()
+    
+    response = await call_next(request)
+    return response
+
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return FileResponse("static/favicon.svg")
@@ -100,6 +119,39 @@ def get_dashboard_data(user_id: int, db: Session):
         "toplam_sag_ekip": sag_ekip,
         "referans_sayisi": referanslar
     }
+
+# --- KİMLİK DOĞRULAMA (AUTH) ---
+
+@app.get("/giris", response_class=HTMLResponse)
+def giris_sayfasi(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.post("/giris", response_class=HTMLResponse)
+def giris_yap(
+    request: Request, 
+    email: str = Form(...), 
+    password: str = Form(...), 
+    db: Session = Depends(get_db)
+):
+    user = db.query(models.Kullanici).filter(models.Kullanici.email == email).first()
+    
+    # Basit şifre kontrolü (Hashleme yoksa)
+    if not user or user.sifre != password:
+        return templates.TemplateResponse("login.html", {
+            "request": request, 
+            "hata": "Hatalı email veya şifre!"
+        })
+    
+    # Başarılı giriş
+    response = RedirectResponse(url=f"/panel/{user.id}", status_code=303)
+    response.set_cookie(key="user_id", value=str(user.id))
+    return response
+
+@app.get("/cikis")
+def cikis_yap():
+    response = RedirectResponse(url="/giris", status_code=303)
+    response.delete_cookie("user_id")
+    return response
 
 # --- WEB PANEL ENDPOINTS ---
 

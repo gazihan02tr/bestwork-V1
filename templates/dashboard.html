@@ -6,11 +6,65 @@
     <div class="grid grid-cols-1 lg:grid-cols-[320px,1fr] gap-8">
         <aside class="bg-white rounded-3xl shadow-xl border border-outline-variant/40 overflow-hidden">
             <div class="px-6 py-6 bg-gradient-to-b from-primary/70 to-primary text-white text-center">
-                <div class="relative w-36 h-36 mx-auto rounded-full overflow-hidden shadow-xl shadow-black/20 bg-white/10 border border-white/40">
-                    <img src="https://ui-avatars.com/api/?name={{ ozet.tam_ad }}&background=random" alt="Profil" class="w-full h-full object-cover">
+                {# --- Badge Logic --- #}
+                {% set badge_bg = "bg-white" %}
+                {% set icon_color = "text-black" %}
+                {% set icon_name = "person" %}
+                {% set icon_count = 1 %}
+                
+                {% if ozet.rutbe == "Yönetici" %}
+                    {% set icon_color = "text-amber-500" %}
+                    {% set icon_name = "security" %}
+                {% elif ozet.rutbe == "Distribütör" or ozet.rutbe == "Distributor" %}
+                    {% set icon_color = "text-black" %}
+                    {% set icon_name = "person" %}
+                {% else %}
+                    {# Diğer tüm rütbeler Elmas olur #}
+                    {% set icon_name = "diamond" %}
+                    
+                    {# Renk Ayarları #}
+                    {% if "Platinum" in ozet.rutbe %}
+                        {% set icon_color = "text-slate-400" %}
+                    {% elif "Pearl" in ozet.rutbe %}
+                        {% set icon_color = "text-rose-200" %}
+                    {% elif "Sapphire" in ozet.rutbe %}
+                        {% set icon_color = "text-blue-600" %}
+                    {% elif "Ruby" in ozet.rutbe %}
+                        {% set icon_color = "text-red-600" %}
+                    {% elif "Emerald" in ozet.rutbe %}
+                        {% set icon_color = "text-emerald-500" %}
+                    {% elif "Diamond" in ozet.rutbe %}
+                        {% set icon_color = "text-cyan-400" %}
+                    {% elif "Presidential" in ozet.rutbe %}
+                        {% set icon_color = "text-purple-600" %}
+                    {% endif %}
+
+                    {# Adet Ayarları #}
+                    {% if "Double" in ozet.rutbe %}
+                        {% set icon_count = 2 %}
+                    {% elif "Triple" in ozet.rutbe or "3-Star" in ozet.rutbe %}
+                        {% set icon_count = 3 %}
+                    {% endif %}
+                {% endif %}
+
+                <div class="relative w-36 h-36 mx-auto">
+                    <div class="w-full h-full rounded-full overflow-hidden shadow-xl shadow-black/20 bg-white/10 border border-white/40">
+                        <img src="https://ui-avatars.com/api/?name={{ ozet.tam_ad }}&background=random" alt="Profil" class="w-full h-full object-cover">
+                    </div>
+                    
+                    {# Badge Container #}
+                    <div class="absolute top-0 right-0 w-10 h-10 rounded-full {{ badge_bg }} flex items-center justify-center shadow-lg border-2 border-surface z-10" title="{{ 'Distribütör' if ozet.rutbe == 'Distributor' else ozet.rutbe }}">
+                        <div class="flex items-center justify-center -space-x-1">
+                            {% for i in range(icon_count) %}
+                                <span class="material-symbols-outlined {{ icon_color }} drop-shadow-sm" style="font-size: {{ '22px' if icon_count == 1 else '16px' if icon_count == 2 else '12px' }};">
+                                    {{ icon_name }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
                 <h2 class="mt-4 text-xl font-semibold">{{ ozet.tam_ad }}</h2>
-                <p class="text-sm opacity-80">{{ ozet.rutbe }}</p>
+                <p class="text-sm opacity-80">{{ 'Distribütör' if ozet.rutbe == 'Distributor' else ozet.rutbe }}</p>
             </div>
             <div class="px-6 py-6 space-y-6">
                 <div class="space-y-1 text-center">

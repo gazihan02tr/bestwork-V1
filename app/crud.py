@@ -347,7 +347,7 @@ def kariyer_guncelle(db: Session, kullanici_id: int):
     elif ciro >= 50000:    yeni_rutbe = "Sapphire"
     elif ciro >= 15000:    yeni_rutbe = "Pearl"
     elif ciro >= 5000:     yeni_rutbe = "Platinum"
-    else:                  yeni_rutbe = "Distributor"
+    else:                  yeni_rutbe = "Distribütör"
 
     if eski_rutbe != yeni_rutbe:
         kullanici.rutbe = yeni_rutbe

@@ -291,6 +291,24 @@
         .gradient-primary {
             background: linear-gradient(135deg, #6750A4 0%, #7F67BE 100%);
         }
+
+        /* El Sallama Animasyonu (Waving) */
+        @keyframes wave {
+            0% { transform: rotate(0deg); }
+            10% { transform: rotate(14deg); }
+            20% { transform: rotate(-8deg); }
+            30% { transform: rotate(14deg); }
+            40% { transform: rotate(-4deg); }
+            50% { transform: rotate(10deg); }
+            60% { transform: rotate(0deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .animate-wave {
+            animation: wave 2s ease-in-out infinite;
+            transform-origin: 70% 70%;
+            display: inline-block;
+        }
     </style>
     {% endblock %}
 </head>
@@ -334,70 +352,44 @@
 
                 <!-- Actions -->
                 <div class="flex items-center gap-2">
-                    <a href="/dashboard" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full hover:bg-surface-container-highest transition-colors text-sm font-medium text-on-surface-variant">
-                        <span class="material-symbols-outlined text-[20px]">person</span>
-                        <span>Giriş Yap</span>
-                    </a>
-                    <a href="/sepet/1" class="relative p-3 rounded-full hover:bg-surface-container-highest transition-colors group">
-                        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">shopping_bag</span>
-                        <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface"></span>
-                    </a>
-                    <button onclick="toggleSearch()" class="p-3 rounded-full hover:bg-surface-container-highest transition-colors group">
-                        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">search</span>
-                    </button>
+                    {% if request.cookies.get("user_id") %}
+                        <!-- Giriş Yapılmış Durum -->
+                        <a href="/panel/{{ request.cookies.get('user_id') }}" class="flex items-center p-1 rounded-full hover:bg-surface-container-highest transition-all duration-500 ease-out group overflow-hidden max-w-[48px] hover:max-w-[250px]">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant group-hover:text-primary group-hover:bg-primary/10 transition-colors shrink-0">
+                                <span class="material-symbols-outlined">person</span>
+                            </div>
+                            <div class="flex flex-col justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 whitespace-nowrap pl-2 pr-4">
+                                <span class="text-[10px] font-medium text-on-surface-variant uppercase tracking-wider leading-none mb-0.5">{{ request.state.user.tam_ad if request.state.user else 'Kullanıcı' }}</span>
+                                <span class="text-xs font-bold text-primary leading-none">Hesabım</span>
+                            </div>
+                        </a>
+                        
+                        <a href="/sepet/{{ request.cookies.get('user_id') }}" class="relative p-3 rounded-full hover:bg-surface-container-highest transition-colors group">
+                            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">shopping_bag</span>
+                            <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface"></span>
+                        </a>
+
+                        <a href="/cikis" class="p-3 rounded-full hover:bg-error/10 transition-colors group ml-2" title="Çıkış Yap">
+                            <span class="material-symbols-outlined text-error group-hover:text-red-700 transition-colors">logout</span>
+                        </a>
+                    {% else %}
+                        <!-- Giriş Yapılmamış Durum -->
+                        <a href="/giris" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full hover:bg-surface-container-highest transition-colors text-sm font-medium text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[20px]">person</span>
+                            <span>Giriş Yap</span>
+                        </a>
+                        
+                        <a href="/sepet/1" class="relative p-3 rounded-full hover:bg-surface-container-highest transition-colors group">
+                            <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">shopping_bag</span>
+                            <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface"></span>
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Full Screen Search Overlay -->
-    <div id="search-overlay" class="fixed inset-0 z-[100] bg-surface/95 backdrop-blur-xl opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center">
-        <button onclick="toggleSearch()" class="absolute top-8 right-8 p-4 rounded-full hover:bg-surface-container-highest transition-colors">
-            <span class="material-symbols-outlined text-3xl text-on-surface">close</span>
-        </button>
-        <div class="w-full max-w-3xl px-4">
-            <div class="relative group">
-                <input type="text" placeholder="Ne aramak istersiniz?" class="w-full bg-transparent border-b-2 border-outline-variant text-4xl md:text-5xl font-display font-bold py-8 text-on-surface placeholder-on-surface-variant/50 focus:border-primary focus:outline-none transition-colors text-center">
-                <span class="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-4xl text-on-surface-variant group-focus-within:text-primary transition-colors">search</span>
-            </div>
-            <div class="mt-8 text-center">
-                <p class="text-on-surface-variant mb-4">Popüler Aramalar</p>
-                <div class="flex flex-wrap justify-center gap-3">
-                    <button class="px-4 py-2 rounded-full bg-surface-container hover:bg-primary/10 hover:text-primary transition-colors text-sm">Cilt Bakımı</button>
-                    <button class="px-4 py-2 rounded-full bg-surface-container hover:bg-primary/10 hover:text-primary transition-colors text-sm">Vitaminler</button>
-                    <button class="px-4 py-2 rounded-full bg-surface-container hover:bg-primary/10 hover:text-primary transition-colors text-sm">Doğal Yağlar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function toggleSearch() {
-            const overlay = document.getElementById('search-overlay');
-            const body = document.body;
-            
-            if (overlay.classList.contains('opacity-0')) {
-                overlay.classList.remove('opacity-0', 'pointer-events-none');
-                body.style.overflow = 'hidden';
-                overlay.querySelector('input').focus();
-            } else {
-                overlay.classList.add('opacity-0', 'pointer-events-none');
-                body.style.overflow = '';
-            }
-        }
-        
-        // Close on escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const overlay = document.getElementById('search-overlay');
-                if (!overlay.classList.contains('opacity-0')) {
-                    toggleSearch();
-                }
-            }
-        });
-    </script>
-
-    <main>
+    <main class="mb-24">
         {% block content %}{% endblock %}
     </main>
 

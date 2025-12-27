@@ -15,7 +15,7 @@ class Kullanici(Base):
     email = Column(String(100), unique=True, index=True)
     telefon = Column(String(20))
     sifre = Column(String(255))
-    rutbe = Column(String, default="Distributor")
+    rutbe = Column(String, default="Distribütör")
     
     # Bağlantılar
     referans_id = Column(Integer, ForeignKey("kullanicilar.id"), nullable=True)
