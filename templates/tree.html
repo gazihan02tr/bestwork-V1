@@ -2,15 +2,15 @@
 {% block title %}Binary Organizasyon Şeması (D3.js){% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#f8fafc] p-4 lg:p-8">
-    <div class="max-w-7xl mx-auto bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden h-[85vh] relative">
+<div class="min-h-screen bg-surface p-4 lg:p-8">
+    <div class="max-w-7xl mx-auto bg-surface-container rounded-[2rem] shadow-md3-3 border border-outline-variant/20 overflow-hidden h-[85vh] relative">
         
-        <div class="absolute top-6 left-6 z-10 bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-primary/10 shadow-sm">
-            <h1 class="text-xl font-bold text-primary flex items-center gap-2">
+        <div class="absolute top-6 left-6 z-10 bg-surface/80 backdrop-blur-md p-4 rounded-2xl border border-outline-variant/20 shadow-sm">
+            <h1 class="text-xl font-display font-bold text-primary flex items-center gap-2">
                 <span class="material-symbols-outlined">account_tree</span>
                 Organizasyon Şeması
             </h1>
-            <p class="text-xs text-gray-500 mt-1">Mouse ile sürükleyebilir ve büyütebilirsiniz.</p>
+            <p class="text-xs text-on-surface-variant mt-1">Mouse ile sürükleyebilir ve büyütebilirsiniz.</p>
         </div>
 
         <div id="tree-viz" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
@@ -54,7 +54,7 @@ async function initTree() {
             .x(d => d.x + width/2)
             .y(d => d.y + 100))
         .attr("fill", "none")
-        .attr("stroke", "#e2e8f0")
+        .attr("stroke", "#CAC4D0") // outline-variant
         .attr("stroke-width", 2);
 
     // Üye Kutucukları (Nodes)
@@ -71,8 +71,8 @@ async function initTree() {
         .attr("x", -80)
         .attr("y", -30)
         .attr("rx", 15)
-        .attr("fill", d => d.data.id === null ? "#f8fafc" : "white")
-        .attr("stroke", d => d.data.id === null ? "#e2e8f0" : "#7C3AED")
+        .attr("fill", d => d.data.id === null ? "#F3F0F5" : "#FFFFFF") // surface-container-high : surface
+        .attr("stroke", d => d.data.id === null ? "#CAC4D0" : "#6750A4") // outline-variant : primary
         .attr("stroke-dasharray", d => d.data.id === null ? "5,5" : "0");
 
     // Üye İsmi
@@ -81,7 +81,7 @@ async function initTree() {
         .attr("dy", -5)
         .attr("font-size", "12px")
         .attr("font-weight", "bold")
-        .attr("fill", "#1e293b")
+        .attr("fill", "#1C1B1F") // on-surface
         .text(d => d.data.name);
 
     // Puan Bilgisi (PV)
@@ -89,7 +89,7 @@ async function initTree() {
         .attr("text-anchor", "middle")
         .attr("dy", 15)
         .attr("font-size", "10px")
-        .attr("fill", "#64748b")
+        .attr("fill", "#49454F") // on-surface-variant
         .text(d => d.data.pv || "");
 }
 

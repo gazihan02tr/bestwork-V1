@@ -3,190 +3,194 @@
 {% block title %}Sepetim{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-md3-2">
+<!-- Minimalist Header -->
+<header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-            <div class="flex items-center space-x-8">
-                <a href="/" class="flex items-center space-x-2">
-                    <div class="w-10 h-10 rounded-md3-lg gradient-primary flex items-center justify-center">
-                        <span class="text-white font-bold text-xl">BW</span>
-                    </div>
-                    <span class="text-xl font-bold text-gray-900">BestWork</span>
+        <div class="flex items-center justify-between h-20">
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-md3-1 group-hover:shadow-md3-2 transition-all duration-300">
+                    <span class="material-symbols-outlined">diamond</span>
+                </div>
+                <span class="text-xl font-display font-bold text-on-surface tracking-tight">BestWork</span>
+            </a>
+            
+            <!-- Actions -->
+            <div class="flex items-center gap-2">
+                <a href="/dashboard" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full hover:bg-surface-container-highest transition-colors text-sm font-medium text-on-surface-variant">
+                    <span class="material-symbols-outlined text-[20px]">person</span>
+                    <span>Giriş Yap</span>
                 </a>
-                <nav class="hidden md:flex space-x-6">
-                    <a href="/" class="text-gray-700 hover:text-primary-600 font-medium transition">Ana Sayfa</a>
-                    <a href="/urunler" class="text-gray-700 hover:text-primary-600 font-medium transition">Ürünler</a>
-                    <a href="/dashboard" class="text-gray-700 hover:text-primary-600 font-medium transition">Dashboard</a>
-                </nav>
-            </div>
-            <div class="flex items-center space-x-4">
-                <a href="/dashboard" class="px-4 py-2 text-sm font-semibold text-white gradient-primary rounded-md3-full shadow-md3-2 hover:shadow-md3-3 transition">Hesabım</a>
             </div>
         </div>
     </div>
 </header>
 
-<!-- Breadcrumb -->
-<div class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div class="flex items-center space-x-2 text-sm text-gray-600">
-            <a href="/" class="hover:text-primary-600">Ana Sayfa</a>
-            <span>/</span>
-            <span class="text-gray-900 font-medium">Sepetim</span>
-        </div>
-    </div>
-</div>
-
-<!-- Cart Content -->
-<section class="py-12">
+<section class="py-12 lg:py-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Page Header -->
+        <div class="mb-12">
+            <h1 class="text-4xl md:text-5xl font-display font-bold text-on-surface mb-4">Alışveriş Sepeti</h1>
+            <p class="text-lg text-on-surface-variant">Sepetinizdeki ürünleri kontrol edin ve siparişinizi tamamlayın.</p>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8 lg:gap-12">
             <!-- Cart Items -->
-            <div class="lg:col-span-2 space-y-4">
-                <div class="bg-white rounded-md3-xl p-6 shadow-md3-2">
-                    <h1 class="text-2xl font-extrabold text-gray-900 mb-6">Sepetim ({{ sepet.urunler|length if sepet and sepet.urunler else 0 }} Ürün)</h1>
-                    
-                    {% if sepet and sepet.urunler %}
-                        {% for item in sepet.urunler %}
-                        <div class="flex items-center space-x-4 py-4 border-b border-gray-200 last:border-0">
+            <div class="lg:col-span-2 space-y-6">
+                {% if sepet and sepet.urunler %}
+                    {% for item in sepet.urunler %}
+                    <div class="group bg-surface rounded-3xl p-4 sm:p-6 shadow-sm hover:shadow-md3-2 transition-all duration-300 border border-outline-variant/20">
+                        <div class="flex gap-6">
                             <!-- Product Image -->
-                            <img src="{{ item.urun.resim_url or 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=200' }}" alt="{{ item.urun.ad }}" class="w-24 h-24 object-cover rounded-md3-lg">
+                            <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-surface-container flex-shrink-0">
+                                <img src="{{ item.urun.resim_url or 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=200&auto=format&fit=crop' }}" 
+                                     alt="{{ item.urun.ad }}" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
                             
                             <!-- Product Info -->
-                            <div class="flex-1">
-                                <h3 class="font-bold text-gray-900 mb-1">{{ item.urun.ad }}</h3>
-                                <div class="flex items-center space-x-3 text-sm text-gray-600">
-                                    <span class="flex items-center space-x-1">
-                                        <svg class="w-4 h-4 text-accent-500" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                        </svg>
-                                        <span>+{{ item.urun.pv_degeri * item.adet }} PV</span>
-                                    </span>
+                            <div class="flex-1 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h3 class="font-display font-bold text-lg text-on-surface group-hover:text-primary transition-colors">
+                                            <a href="/urun/{{ item.urun.id }}">{{ item.urun.ad }}</a>
+                                        </h3>
+                                        <form action="/api/sepet/{{ sepet.id }}/sil/{{ item.id }}" method="POST">
+                                            <button type="submit" class="text-on-surface-variant hover:text-error transition-colors p-1 rounded-full hover:bg-error/10">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- PV Badge -->
+                                    <div class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-tertiary-container/50 text-on-tertiary-container text-xs font-medium mb-4">
+                                        <span class="material-symbols-outlined text-[14px]">stars</span>
+                                        <span>+{{ item.urun.pv_degeri * item.adet }} PV Kazanç</span>
+                                    </div>
                                 </div>
-                                <div class="flex items-center space-x-3 mt-2">
-                                    <form action="/api/sepet/{{ sepet.id }}/guncelle/{{ item.id }}" method="POST" class="flex items-center space-x-2">
-                                        <button type="submit" name="adet" value="{{ item.adet - 1 }}" class="w-8 h-8 rounded-md3-lg bg-surface-container hover:bg-gray-200 flex items-center justify-center font-bold transition">-</button>
-                                        <span class="w-12 text-center font-semibold">{{ item.adet }}</span>
-                                        <button type="submit" name="adet" value="{{ item.adet + 1 }}" class="w-8 h-8 rounded-md3-lg bg-surface-container hover:bg-gray-200 flex items-center justify-center font-bold transition">+</button>
-                                    </form>
+
+                                <div class="flex items-end justify-between">
+                                    <!-- Quantity Control -->
+                                    <div class="flex items-center bg-surface-container-high rounded-full p-1">
+                                        <form action="/api/sepet/{{ sepet.id }}/guncelle/{{ item.id }}" method="POST" class="contents">
+                                            <button type="submit" name="adet" value="{{ item.adet - 1 }}" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white text-on-surface-variant transition-colors">
+                                                <span class="material-symbols-outlined text-[18px]">remove</span>
+                                            </button>
+                                            <span class="w-8 text-center font-medium text-on-surface">{{ item.adet }}</span>
+                                            <button type="submit" name="adet" value="{{ item.adet + 1 }}" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white text-on-surface-variant transition-colors">
+                                                <span class="material-symbols-outlined text-[18px]">add</span>
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="text-right">
+                                        {% if item.urun.indirimli_fiyat %}
+                                            <div class="text-sm text-on-surface-variant line-through">{{ item.urun.fiyat * item.adet }} ₺</div>
+                                            <div class="text-xl font-bold text-primary">{{ item.urun.indirimli_fiyat * item.adet }} ₺</div>
+                                        {% else %}
+                                            <div class="text-xl font-bold text-on-surface">{{ item.urun.fiyat * item.adet }} ₺</div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <!-- Price & Remove -->
-                            <div class="text-right space-y-2">
-                                {% if item.urun.indirimli_fiyat %}
-                                <div class="text-2xl font-extrabold text-primary-600">{{ item.urun.indirimli_fiyat * item.adet }} ₺</div>
-                                <div class="text-sm text-gray-400 line-through">{{ item.urun.fiyat * item.adet }} ₺</div>
-                                {% else %}
-                                <div class="text-2xl font-extrabold text-primary-600">{{ item.urun.fiyat * item.adet }} ₺</div>
-                                {% endif %}
-                                <form action="/api/sepet/{{ sepet.id }}/sil/{{ item.id }}" method="POST">
-                                    <button type="submit" class="text-sm text-red-500 hover:text-red-700 font-medium transition">Kaldır</button>
-                                </form>
-                            </div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center py-12">
-                            <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                            </svg>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Sepetiniz Boş</h3>
-                            <p class="text-gray-600 mb-6">Alışverişe başlamak için ürünlerimize göz atın</p>
-                            <a href="/" class="inline-block px-8 py-3 gradient-primary text-white font-bold rounded-md3-xl shadow-md3-2 hover:shadow-md3-3 transition">
-                                Alışverişe Başla
-                            </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="bg-surface rounded-3xl p-12 text-center border border-outline-variant/20">
+                        <div class="w-24 h-24 rounded-full bg-surface-container-highest flex items-center justify-center mx-auto mb-6">
+                            <span class="material-symbols-outlined text-4xl text-on-surface-variant/50">shopping_cart_off</span>
                         </div>
-                    {% endif %}
-                </div>
+                        <h3 class="text-xl font-display font-bold text-on-surface mb-2">Sepetiniz Boş</h3>
+                        <p class="text-on-surface-variant mb-8">Alışverişe başlamak için ürünlerimize göz atın.</p>
+                        <a href="/" class="btn-filled inline-flex items-center gap-2">
+                            <span class="material-symbols-outlined">storefront</span>
+                            Alışverişe Başla
+                        </a>
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Order Summary -->
             {% if sepet and sepet.urunler %}
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-md3-xl p-6 shadow-md3-3 sticky top-24 space-y-6">
-                    <h2 class="text-xl font-extrabold text-gray-900">Sipariş Özeti</h2>
-                    
-                    <!-- Calculations -->
-                    {% set toplam_fiyat = namespace(value=0) %}
-                    {% set toplam_pv = namespace(value=0) %}
-                    {% set indirim = namespace(value=0) %}
-                    
-                    {% for item in sepet.urunler %}
-                        {% if item.urun.indirimli_fiyat %}
-                            {% set toplam_fiyat.value = toplam_fiyat.value + (item.urun.indirimli_fiyat * item.adet) %}
-                            {% set indirim.value = indirim.value + ((item.urun.fiyat - item.urun.indirimli_fiyat) * item.adet) %}
-                        {% else %}
-                            {% set toplam_fiyat.value = toplam_fiyat.value + (item.urun.fiyat * item.adet) %}
-                        {% endif %}
-                        {% set toplam_pv.value = toplam_pv.value + (item.urun.pv_degeri * item.adet) %}
-                    {% endfor %}
-                    
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-gray-700">
-                            <span>Ara Toplam</span>
-                            <span class="font-semibold">{{ toplam_fiyat.value + indirim.value }} ₺</span>
-                        </div>
-                        {% if indirim.value > 0 %}
-                        <div class="flex justify-between text-secondary-600">
-                            <span>İndirim</span>
-                            <span class="font-semibold">-{{ indirim.value }} ₺</span>
-                        </div>
-                        {% endif %}
-                        <div class="flex justify-between text-gray-700">
-                            <span>Kargo</span>
-                            <span class="font-semibold text-accent-600">Ücretsiz</span>
-                        </div>
-                        <div class="border-t border-gray-200 pt-3"></div>
-                        <div class="flex justify-between items-baseline">
-                            <span class="text-lg font-bold text-gray-900">Toplam</span>
-                            <span class="text-3xl font-extrabold text-primary-600">{{ toplam_fiyat.value }} ₺</span>
-                        </div>
-                    </div>
-                    
-                    <!-- PV Info -->
-                    <div class="bg-gradient-to-r from-accent-50 to-primary-50 rounded-md3-lg p-4 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold text-gray-700">Toplam PV Kazancınız</span>
-                            <div class="flex items-center space-x-1 text-accent-600">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                </svg>
-                                <span class="text-2xl font-extrabold">{{ toplam_pv.value }}</span>
+                <div class="sticky top-28 space-y-6">
+                    <div class="bg-surface rounded-3xl p-6 sm:p-8 shadow-md3-2 border border-outline-variant/20">
+                        <h2 class="text-xl font-display font-bold text-on-surface mb-6">Sipariş Özeti</h2>
+                        
+                        <!-- Calculations -->
+                        {% set toplam_fiyat = namespace(value=0) %}
+                        {% set toplam_pv = namespace(value=0) %}
+                        {% set indirim = namespace(value=0) %}
+                        
+                        {% for item in sepet.urunler %}
+                            {% if item.urun.indirimli_fiyat %}
+                                {% set toplam_fiyat.value = toplam_fiyat.value + (item.urun.indirimli_fiyat * item.adet) %}
+                                {% set indirim.value = indirim.value + ((item.urun.fiyat - item.urun.indirimli_fiyat) * item.adet) %}
+                            {% else %}
+                                {% set toplam_fiyat.value = toplam_fiyat.value + (item.urun.fiyat * item.adet) %}
+                            {% endif %}
+                            {% set toplam_pv.value = toplam_pv.value + (item.urun.pv_degeri * item.adet) %}
+                        {% endfor %}
+                        
+                        <div class="space-y-4 mb-6">
+                            <div class="flex justify-between text-on-surface-variant">
+                                <span>Ara Toplam</span>
+                                <span class="font-medium text-on-surface">{{ toplam_fiyat.value + indirim.value }} ₺</span>
+                            </div>
+                            {% if indirim.value > 0 %}
+                            <div class="flex justify-between text-secondary">
+                                <span>İndirim</span>
+                                <span class="font-medium">-{{ indirim.value }} ₺</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between text-on-surface-variant">
+                                <span>Kargo</span>
+                                <span class="font-medium text-primary">Ücretsiz</span>
+                            </div>
+                            <div class="h-px bg-outline-variant/50 my-2"></div>
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-lg font-bold text-on-surface">Toplam</span>
+                                <span class="text-3xl font-display font-bold text-primary">{{ toplam_fiyat.value }} ₺</span>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-600">PV puanlarınızı komisyon ve prim hesaplamalarında kullanabilirsiniz</p>
-                    </div>
-                    
-                    <!-- Checkout Button -->
-                    <form action="/api/siparisler" method="POST">
-                        <input type="hidden" name="sepet_id" value="{{ sepet.id }}">
-                        <button type="submit" class="w-full py-4 gradient-primary text-white text-lg font-bold rounded-md3-xl shadow-md3-3 hover:shadow-md3-4 transition-all transform hover:-translate-y-1">
-                            Siparişi Tamamla
-                        </button>
-                    </form>
-                    
-                    <!-- Trust Badges -->
-                    <div class="pt-4 border-t border-gray-200 space-y-2">
-                        <div class="flex items-center space-x-2 text-sm text-gray-600">
-                            <svg class="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>Güvenli ödeme</span>
+                        
+                        <!-- PV Info -->
+                        <div class="bg-tertiary-container/30 rounded-2xl p-4 mb-6 border border-tertiary-container">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm font-semibold text-on-surface">Toplam PV Kazancı</span>
+                                <div class="flex items-center gap-1 text-tertiary">
+                                    <span class="material-symbols-outlined text-[20px]">stars</span>
+                                    <span class="text-xl font-bold">{{ toplam_pv.value }}</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-on-surface-variant">Bu siparişten kazanacağınız toplam puan.</p>
                         </div>
-                        <div class="flex items-center space-x-2 text-sm text-gray-600">
-                            <svg class="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
-                                <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
-                            </svg>
-                            <span>Hızlı kargo</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-sm text-gray-600">
-                            <svg class="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-                            </svg>
-                            <span>14 gün iade garantisi</span>
+                        
+                        <!-- Checkout Button -->
+                        <form action="/api/siparisler" method="POST">
+                            <input type="hidden" name="sepet_id" value="{{ sepet.id }}">
+                            <button type="submit" class="w-full btn-filled py-4 text-lg shadow-md3-2 hover:shadow-md3-3">
+                                Siparişi Tamamla
+                                <span class="material-symbols-outlined">arrow_forward</span>
+                            </button>
+                        </form>
+                        
+                        <!-- Trust Badges -->
+                        <div class="grid grid-cols-3 gap-2 mt-6 pt-6 border-t border-outline-variant/50">
+                            <div class="flex flex-col items-center text-center gap-1">
+                                <span class="material-symbols-outlined text-primary text-[24px]">lock</span>
+                                <span class="text-[10px] font-medium text-on-surface-variant">Güvenli Ödeme</span>
+                            </div>
+                            <div class="flex flex-col items-center text-center gap-1">
+                                <span class="material-symbols-outlined text-primary text-[24px]">local_shipping</span>
+                                <span class="text-[10px] font-medium text-on-surface-variant">Hızlı Kargo</span>
+                            </div>
+                            <div class="flex flex-col items-center text-center gap-1">
+                                <span class="material-symbols-outlined text-primary text-[24px]">published_with_changes</span>
+                                <span class="text-[10px] font-medium text-on-surface-variant">Kolay İade</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -195,5 +199,4 @@
         </div>
     </div>
 </section>
-
 {% endblock %}
