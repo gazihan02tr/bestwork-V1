@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}Kullanıcı Paneli{% endblock %}
+
+{% block content %}
+<div class="max-w-[85%] mx-auto mt-7 px-4 sm:px-6 lg:px-8 space-y-8 relative z-0">
+    <div class="grid grid-cols-1 lg:grid-cols-[320px,1fr] gap-8">
+        <aside class="bg-white rounded-3xl shadow-xl border border-outline-variant/40 overflow-hidden">
+            <div class="px-6 py-6 bg-gradient-to-b from-primary/70 to-primary text-white text-center">
+                {# --- Badge Logic --- #}
+                {% set badge_bg = "bg-white" %}
+                {% set icon_color = "text-black" %}
+                {% set icon_name = "person" %}
+                {% set icon_count = 1 %}
+                
+                {% if ozet.rutbe == "Yönetici" %}
+                    {% set icon_color = "text-amber-500" %}
+                    {% set icon_name = "security" %}
+                {% elif ozet.rutbe == "Distribütör" or ozet.rutbe == "Distributor" %}
+                    {% set icon_color = "text-black" %}
+                    {% set icon_name = "person" %}
+                {% else %}
+                    {# Diğer tüm rütbeler Elmas olur #}
+                    {% set icon_name = "diamond" %}
+                    
+                    {# Renk Ayarları #}
+                    {% if "Platinum" in ozet.rutbe %}
+                        {% set icon_color = "text-slate-400" %}
+                    {% elif "Pearl" in ozet.rutbe %}
+                        {% set icon_color = "text-rose-200" %}
+                    {% elif "Sapphire" in ozet.rutbe %}
+                        {% set icon_color = "text-blue-600" %}
+                    {% elif "Ruby" in ozet.rutbe %}
+                        {% set icon_color = "text-red-600" %}
+                    {% elif "Emerald" in ozet.rutbe %}
+                        {% set icon_color = "text-emerald-500" %}
+                    {% elif "Diamond" in ozet.rutbe %}
+                        {% set icon_color = "text-cyan-400" %}
+                    {% elif "Presidential" in ozet.rutbe %}
+                        {% set icon_color = "text-purple-600" %}
+                    {% endif %}
+
+                    {# Adet Ayarları #}
+                    {% if "Double" in ozet.rutbe %}
+                        {% set icon_count = 2 %}
+                    {% elif "Triple" in ozet.rutbe or "3-Star" in ozet.rutbe %}
+                        {% set icon_count = 3 %}
+                    {% endif %}
+                {% endif %}
+
+                <div class="relative w-36 h-36 mx-auto">
+                    <div class="w-full h-full rounded-full overflow-hidden shadow-xl shadow-black/20 bg-white/10 border border-white/40">
+                        <img src="https://ui-avatars.com/api/?name={{ ozet.tam_ad }}&background=random" alt="Profil" class="w-full h-full object-cover">
+                    </div>
+                    
+                    {# Badge Container #}
+                    <div class="absolute bottom-0 right-0 w-10 h-10 rounded-full {{ badge_bg }} flex items-center justify-center shadow-lg border-2 border-surface z-10" title="{{ 'Distribütör' if ozet.rutbe == 'Distributor' else ozet.rutbe }}">
+                        <div class="flex items-center justify-center -space-x-1">
+                            {% for i in range(icon_count) %}
+                                <span class="material-symbols-outlined {{ icon_color }} drop-shadow-sm" style="font-size: {{ '22px' if icon_count == 1 else '16px' if icon_count == 2 else '12px' }};">
+                                    {{ icon_name }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <h2 class="mt-4 text-xl font-semibold">{{ ozet.tam_ad }}</h2>
+                <p class="text-sm opacity-80">{{ 'Distribütör' if ozet.rutbe == 'Distributor' else ozet.rutbe }}</p>
+            </div>
+            <div class="px-6 py-6 space-y-6">
+                <div class="space-y-1 text-center">
+                    <p class="text-xs uppercase tracking-wide text-amber-500 font-semibold">Üye ID</p>
+                    <p class="text-lg font-semibold text-on-surface">{{ ozet.uye_no if ozet.uye_no else ozet.id }}</p>
+                </div>
+
+                <!-- Referans Linki -->
+                <div class="space-y-2">
+                    <p class="text-xs uppercase tracking-wide text-primary font-semibold text-center">Referans Linki</p>
+                    <div class="flex items-center gap-1 bg-surface-container-highest p-2 rounded-lg border border-outline-variant/20">
+                        <input type="text" readonly 
+                               value="{{ request.base_url }}kayit?ref={{ ozet.uye_no if ozet.uye_no else ozet.id }}" 
+                               class="flex-1 bg-transparent border-none text-xs text-on-surface font-medium focus:ring-0 p-0 truncate"
+                               id="refLinkInput">
+                        <button onclick="copyRefLink(this)" class="p-1.5 hover:bg-white rounded-md transition-all text-primary active:scale-95" title="Kopyala">
+                            <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                        </button>
+                        <a href="{{ request.base_url }}kayit?ref={{ ozet.uye_no if ozet.uye_no else ozet.id }}" target="_blank" class="p-1.5 hover:bg-white rounded-md transition-all text-primary active:scale-95" title="Git">
+                            <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- QR Code -->
+                <div class="flex flex-col items-center space-y-3 pt-2 border-t border-dashed border-outline-variant/30">
+                    <p class="text-[10px] uppercase tracking-wider text-primary/80 font-bold">QR Davet</p>
+                    <div class="p-2 bg-white rounded-xl shadow-md shadow-purple-500/10 border border-purple-100 group hover:scale-105 transition-transform duration-300 cursor-pointer">
+                        <img src="https://quickchart.io/qr?text={{ request.base_url }}kayit?ref={{ ozet.uye_no if ozet.uye_no else ozet.id }}&dark=7C3AED&margin=1&size=200&ecLevel=M" 
+                             alt="Referans QR" 
+                             class="w-24 h-24 rounded-lg opacity-90 group-hover:opacity-100 transition-opacity">
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="space-y-6">
+            <div class="px-8 py-10 bg-white rounded-3xl shadow-2xl">
+                <div id="cards-view" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {% set cards = [
+                        {
+                            'title': 'KARİYERİNİZ',
+                            'value': ozet.rutbe,
+                            'icon': 'diamond',
+                            'color': 'from-amber-600 to-amber-400',
+                            'subtitle': None,
+                            'link': '/career-tracking'
+                        },
+                        {
+                            'title': 'MEVCUT SEVİYENİZ',
+                            'value': ozet.rutbe,
+                            'icon': 'workspace_premium',
+                            'color': 'from-amber-700 to-yellow-500',
+                            'subtitle': 'Sonraki: ' ~ ozet.sonraki_rutbe,
+                            'link': '/career-tracking'
+                        },
+                        {
+                            'title': 'GİRİŞİMCİLİK SEVİYENİZ',
+                            'value': 'Platin',
+                            'icon': 'insights',
+                            'color': 'from-slate-800 to-slate-600',
+                            'subtitle': None
+                        },
+                        {
+                            'title': 'SPONSOR OLDUKLARIM',
+                            'value': ozet.referans_sayisi,
+                            'icon': 'diversity_3',
+                            'color': 'from-sky-700 to-sky-500',
+                            'subtitle': None,
+                            'link': '/sponsored'
+                        },
+                        {
+                            'title': 'EKİBİM',
+                            'value': ozet.toplam_sol_ekip ~ ' / ' ~ ozet.toplam_sag_ekip,
+                            'icon': 'groups_2',
+                            'color': 'from-orange-600 to-amber-500',
+                            'subtitle': 'Sol / Sağ üye',
+                            'link': '/panel/agac/' ~ ozet.id
+                        },
+                        {
+                            'title': 'ANLIK EŞLEŞME',
+                            'value': ozet.mevcut_sol_pv ~ ' / ' ~ ozet.mevcut_sag_pv,
+                            'icon': 'scale',
+                            'color': 'from-orange-500 to-orange-600',
+                            'subtitle': 'Sol / Sağ CV'
+                        },
+                        {
+                            'title': 'TOPLAM KAZANÇ',
+                            'value': ozet.toplam_cv ~ ' CV',
+                            'icon': 'attach_money',
+                            'color': 'from-emerald-600 to-emerald-500',
+                            'subtitle': None,
+                            'link': '/prim-info'
+                        },
+                        {
+                            'title': 'YERLEŞİM BEKLEYEN',
+                            'value': '0',
+                            'icon': 'person_add',
+                            'color': 'from-purple-600 to-fuchsia-500',
+                            'subtitle': 'Onay bekleyen'
+                        },
+                        {
+                            'title': 'ANLIK KAZANÇ',
+                            'value': '0.00 ₺',
+                            'icon': 'payments',
+                            'color': 'from-green-600 to-green-500',
+                            'subtitle': None,
+                            'link': '/prim-info'
+                        }
+                    ] %}
+
+                    {% for card in cards %}
+                                <div
+                                    class="relative rounded-2xl p-6 text-white overflow-hidden bg-gradient-to-br {{ card.color }} shadow-lg shadow-black/10 h-full transition transform hover:-translate-y-1 hover:shadow-2xl {% if card.link or card.title == 'Yerleşim Bekleyen' %}cursor-pointer{% endif %}"
+                                    {% if card.title == 'Yerleşim Bekleyen' %}data-open-placement{% endif %}
+                                    {% if card.link %}onclick="window.location='{{ card.link }}';" role="link" tabindex="0"{% endif %}
+                                >
+                                    <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/10"></div>
+                                    <div class="flex flex-col h-full justify-between">
+                                        <div class="flex items-start justify-between">
+                                            <div>
+                                                <p class="text-xs uppercase tracking-wide text-white/70 mb-2 flex items-center gap-1">
+                                                    <span class="material-symbols-outlined text-sm">{{ card.icon }}</span>
+                                                    {{ card.title }}
+                                                </p>
+                                                <p class="text-3xl font-semibold">{{ card.value }}</p>
+                                                {% if card.subtitle %}
+                                                    <p class="text-xs mt-2 text-white/70">{{ card.subtitle }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <span class="material-symbols-outlined text-4xl text-white/30">{{ card.icon }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyRefLink(btn) {
+    var copyText = document.getElementById("refLinkInput");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // Mobil cihazlar için
+    navigator.clipboard.writeText(copyText.value).then(function() {
+        // İkonu değiştir
+        var icon = btn.querySelector("span");
+        var originalText = icon.innerText;
+        icon.innerText = "check";
+        btn.classList.add("text-green-600");
+        
+        setTimeout(function() {
+            icon.innerText = "content_copy";
+            btn.classList.remove("text-green-600");
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

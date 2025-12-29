@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Kariyer Basamakları{% endblock %}
+
+{% block content %}
+<div class="max-w-[95%] mx-auto mt-8 px-4 pb-20">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-end mb-10 border-b border-gray-200 pb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Kariyer Yolculuğu</h1>
+            <p class="mt-2 text-gray-600">Hedeflerinize ulaşmak için ilerlemenizi takip edin.</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-lg border border-amber-200">
+                <span class="material-symbols-outlined">workspace_premium</span>
+                <span class="font-semibold">Mevcut: {{ current_user.rutbe }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for kariyer in kariyer_durumu %}
+            {# Renk Belirleme #}
+            {% set base_color = "gray" %}
+            {% if "Platinum" in kariyer.ad %}{% set base_color = "slate" %}
+            {% elif "Pearl" in kariyer.ad %}{% set base_color = "rose" %}
+            {% elif "Sapphire" in kariyer.ad %}{% set base_color = "blue" %}
+            {% elif "Ruby" in kariyer.ad %}{% set base_color = "red" %}
+            {% elif "Emerald" in kariyer.ad %}{% set base_color = "emerald" %}
+            {% elif "Diamond" in kariyer.ad %}{% set base_color = "cyan" %}
+            {% elif "President" in kariyer.ad %}{% set base_color = "purple" %}
+            {% endif %}
+
+            <div class="relative group">
+                <!-- Connection Line (Desktop only, except last item) -->
+                {% if not loop.last %}
+                <div class="hidden xl:block absolute top-1/2 -right-9 w-12 h-1 bg-gray-200 z-0"></div>
+                {% endif %}
+
+                <div class="relative bg-white rounded-2xl p-6 h-full transition-all duration-300 z-10 border-2
+                    border-{{ base_color }}-400 shadow-lg shadow-{{ base_color }}-100
+                    hover:shadow-xl hover:shadow-{{ base_color }}-200 hover:-translate-y-1
+                    {% if kariyer.aktif %}ring-4 ring-{{ base_color }}-100 scale-105{% endif %}
+                    {% if kariyer.tamamlandi %}bg-{{ base_color }}-50/30{% endif %}">
+                    
+                    <!-- Header: Icon & Status -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md bg-gradient-to-br from-{{ base_color }}-400 to-{{ base_color }}-600">
+                            <span class="font-bold text-lg">{{ loop.index }}</span>
+                        </div>
+                        
+                        {% if kariyer.tamamlandi %}
+                            <span class="material-symbols-outlined text-emerald-500 text-2xl">check_circle</span>
+                        {% elif kariyer.aktif %}
+                            <span class="material-symbols-outlined text-{{ base_color }}-500 text-2xl animate-pulse">stars</span>
+                        {% else %}
+                            <span class="material-symbols-outlined text-gray-300 text-2xl">lock</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Title -->
+                    <h3 class="text-lg font-bold text-gray-800 mb-1">{{ kariyer.ad }}</h3>
+                    <p class="text-xs text-gray-500 mb-4 uppercase tracking-wider">
+                        {% if kariyer.tamamlandi %}Tamamlandı{% elif kariyer.aktif %}Mevcut Seviye{% else %}Kilitli{% endif %}
+                    </p>
+
+                    <!-- Progress Section -->
+                    {% if kariyer.hedef_sol > 0 %}
+                        <div class="space-y-3 bg-gray-50 p-3 rounded-xl">
+                            <!-- Left Arm -->
+                            <div>
+                                <div class="flex justify-between text-[10px] text-gray-500 mb-1">
+                                    <span>SOL KOL</span>
+                                    <span>{{ kariyer.sol_yuzde }}%</span>
+                                </div>
+                                <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-{{ base_color }}-500 rounded-full" style="width: {{ kariyer.sol_yuzde }}%"></div>
+                                </div>
+                                <div class="text-[10px] text-right text-gray-400 mt-0.5">{{ format_number(kariyer.mevcut_sol) }} PV / {{ format_number(kariyer.hedef_sol) }} PV</div>
+                            </div>
+
+                            <!-- Right Arm -->
+                            <div>
+                                <div class="flex justify-between text-[10px] text-gray-500 mb-1">
+                                    <span>SAĞ KOL</span>
+                                    <span>{{ kariyer.sag_yuzde }}%</span>
+                                </div>
+                                <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-{{ base_color }}-500 rounded-full" style="width: {{ kariyer.sag_yuzde }}%"></div>
+                                </div>
+                                <div class="text-[10px] text-right text-gray-400 mt-0.5">{{ format_number(kariyer.mevcut_sag) }} PV / {{ format_number(kariyer.hedef_sag) }} PV</div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="bg-{{ base_color }}-50 p-3 rounded-xl border border-{{ base_color }}-100">
+                            <p class="text-xs text-{{ base_color }}-700 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">verified</span>
+                                Başlangıç Seviyesi
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

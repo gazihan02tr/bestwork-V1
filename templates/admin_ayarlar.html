@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BestWork | Sistem Yönetimi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; border-radius: 15px; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .stat-card { background: linear-gradient(45deg, #2c3e50, #34495e); color: white; }
+        .table-container { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .btn-primary { border-radius: 10px; padding: 10px 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="fw-bold text-dark">⚙️ Sistem Kontrol Paneli</h1>
+            <p class="text-muted">Network pazarlama parametrelerini ve nesil kazançlarını buradan yönetin.</p>
+        </div>
+        <a href="/panel/1" class="btn btn-outline-dark"><i class="bi bi-person-circle"></i> Admin Paneline Dön</a>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <h3 class="mb-3 text-secondary">Genel Parametreler</h3>
+        {% for ayar in ayarlar %}
+        <div class="col-md-3">
+            <div class="card p-4 shadow-sm border-start border-4 border-primary">
+                <form action="/admin/ayarlar/guncelle" method="post">
+                    <label class="form-label text-uppercase small fw-bold text-muted">{{ ayar.anahtar.replace('_', ' ') }}</label>
+                    <div class="input-group">
+                        <input type="hidden" name="anahtar" value="{{ ayar.anahtar }}">
+                        <input type="number" step="0.01" name="deger" class="form-control fw-bold" value="{{ ayar.deger }}">
+                        <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="table-container mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>👥 Dinamik Nesil (Matching) Derinliği</h3>
+            <span class="badge bg-dark p-2">Aktif Derinlik: {{ toplam_nesil }} Seviye</span>
+        </div>
+
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 20%;">Nesil No</th>
+                    <th style="width: 40%;">Kazanç Oranı (%)</th>
+                    <th style="width: 20%;">Durum</th>
+                    <th style="width: 20%;" class="text-end">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n in nesiller %}
+                <tr>
+                    <td><span class="badge bg-secondary rounded-pill">{{ n.nesil_no }}. Nesil</span></td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ n.oran * 100 }}%;">
+                                %{{ (n.oran * 100) | int }}
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="text-success small fw-bold"><i class="bi bi-dot"></i> Aktif Ödeniyor</span></td>
+                    <td class="text-end">
+                        <a href="/admin/nesil/sil/{{ n.id }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Kaldır
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="mt-5 p-4 bg-light rounded-4 border border-dashed">
+            <h5 class="mb-3">Yeni Derinlik Seviyesi Ekle</h5>
+            <form action="/admin/nesil/ekle" method="post" class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text">Nesil No:</span>
+                        <input type="number" name="nesil_no" class="form-control" placeholder="Örn: 4" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text">Oran (0.01-1):</span>
+                        <input type="number" step="0.01" name="oran" class="form-control" placeholder="Örn: 0.05" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-plus-circle"></i> Sisteme Ekle</button>
+                </div>
+            </form>
+            <p class="small text-muted mt-2">NOT: Aynı nesil numarasını girerseniz mevcut oran güncellenir.</p>
+        </div>
+    </div>
+</div>
+<form action="/admin/ayarlar/guncelle" method="post" class="flex gap-2 items-center border p-4 rounded-lg bg-white shadow-sm">
+    <label class="font-semibold">Kısa Kol Ödeme Oranı (%):</label>
+    <input type="hidden" name="anahtar" value="kisa_kol_oran">
+    <input type="number" step="0.01" name="deger" value="0.13" class="border rounded px-2 py-1 w-24">
+    <button type="submit" class="bg-primary text-white px-4 py-1 rounded hover:bg-primary/80">
+        Güncelle
+    </button>
+</form>
+<p class="text-xs text-gray-500 mt-1">* Örn: %13 için 0.13 yazınız.</p>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
