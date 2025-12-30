@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, Request, Form
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
@@ -123,6 +123,10 @@ def get_dashboard_data(user_id: int, db: Session):
     sol_ekip = ekip_sayisini_bul(user_id, "SOL")
     sag_ekip = ekip_sayisini_bul(user_id, "SAG")
     referanslar = db.query(models.Kullanici).filter(models.Kullanici.referans_id == user_id).count()
+    bekleyenler = db.query(models.Kullanici).filter(
+        models.Kullanici.referans_id == user_id,
+        models.Kullanici.parent_id == None
+    ).count()
 
     # Rütbe Mantığı
     rutbeler = [
@@ -159,7 +163,8 @@ def get_dashboard_data(user_id: int, db: Session):
         "mevcut_sag_pv": kullanici.sag_pv,
         "toplam_sol_ekip": sol_ekip,
         "toplam_sag_ekip": sag_ekip,
-        "referans_sayisi": referanslar
+        "referans_sayisi": referanslar,
+        "bekleyen_sayisi": bekleyenler
     }
 
 # --- KİMLİK DOĞRULAMA (AUTH) ---
@@ -247,9 +252,49 @@ def sifre_degistir_islem(
 
 # --- WEB PANEL ENDPOINTS ---
 
+@app.get("/panel/sponsor-olduklarim", response_class=HTMLResponse)
+def sponsor_olduklarim_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    
+    user_id = request.state.user.id
+    sponsor_olunanlar = db.query(models.Kullanici).filter(models.Kullanici.referans_id == user_id).all()
+    
+    return templates.TemplateResponse("sponsored.html", {
+        "request": request,
+        "uyeler": sponsor_olunanlar,
+        "site_branding": {"site_name": "BestWork", "primary_color": "#7C3AED"}
+    })
+
+@app.get("/panel/bekleyenler", response_class=HTMLResponse)
+def bekleyenler_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    
+    user_id = request.state.user.id
+    bekleyenler = db.query(models.Kullanici).filter(
+        models.Kullanici.referans_id == user_id,
+        models.Kullanici.parent_id == None
+    ).all()
+    
+    return templates.TemplateResponse("bekleyenler.html", {
+        "request": request,
+        "uyeler": bekleyenler,
+        "site_branding": {"site_name": "BestWork", "primary_color": "#7C3AED"}
+    })
+
 # KULLANICI DASHBOARD (Giydirilmiş Hali)
 @app.get("/panel/{user_id}", response_class=HTMLResponse)
 def dashboard_sayfasi(request: Request, user_id: int, db: Session = Depends(get_db)):
+    # GÜVENLİK KONTROLÜ
+    current_user = request.state.user
+    if not current_user:
+        return RedirectResponse(url="/giris", status_code=303)
+    
+    # Başkasının paneline girmeyi engelle (Admin hariç - şimdilik admin yok)
+    if current_user.id != user_id:
+        return RedirectResponse(url=f"/panel/{current_user.id}", status_code=303)
+
     ozet_verisi = get_dashboard_data(user_id, db)
     
     if not ozet_verisi:
@@ -360,6 +405,111 @@ def nesil_sil(nesil_id: int, db: Session = Depends(get_db)):
 
 # --- API ENDPOINTS (Swagger için) ---
 
+# --- KAYIT İŞLEMLERİ ---
+
+@app.get("/kayit", response_class=HTMLResponse)
+def kayit_sponsor_kontrol(request: Request, ref: str = None):
+    if ref:
+        return RedirectResponse(url=f"/kayit-form?ref={ref}", status_code=303)
+    return templates.TemplateResponse("sponsor_kontrol.html", {"request": request})
+
+@app.get("/api/sponsor-kontrol/{sponsor_no}")
+def sponsor_kontrol_api(sponsor_no: str, db: Session = Depends(get_db)):
+    # Hem ID hem de uye_no ile arama yapalım
+    sponsor = None
+    # Eğer sadece sayı ise ID olma ihtimali de var, ama uye_no string de olabilir.
+    # Güvenli olması için her ikisine de bakalım.
+    sponsor = db.query(models.Kullanici).filter(
+        or_(models.Kullanici.uye_no == sponsor_no, models.Kullanici.id == (int(sponsor_no) if sponsor_no.isdigit() else -1))
+    ).first()
+    
+    if sponsor:
+        return {"valid": True, "ad_soyad": sponsor.tam_ad, "id": sponsor.id}
+    else:
+        return {"valid": False}
+
+@app.get("/kayit-form", response_class=HTMLResponse)
+def kayit_formu_sayfasi(request: Request, ref: str = None, db: Session = Depends(get_db)):
+    sponsor = None
+    
+    if ref:
+        # Referans kodu verilmişse onu bul
+        sponsor = db.query(models.Kullanici).filter(
+            or_(models.Kullanici.uye_no == ref, models.Kullanici.id == (int(ref) if ref.isdigit() else -1))
+        ).first()
+    
+    if not sponsor:
+        # Referans yoksa veya bulunamadıysa, Şirket Kurucusu (ID: 1) veya ilk kullanıcıyı ata
+        sponsor = db.query(models.Kullanici).order_by(models.Kullanici.id.asc()).first()
+        
+    if not sponsor:
+        # Hiç kullanıcı yoksa (ilk kurulum), bu durum normalde olmamalı ama handle edelim
+        return HTMLResponse("Sistemde hiç üye yok, lütfen önce kurulum yapın.", status_code=500)
+
+    return templates.TemplateResponse("kayit_form.html", {
+        "request": request,
+        "sponsor": sponsor
+    })
+
+@app.post("/kayit-tamamla", response_class=HTMLResponse)
+def kayit_tamamla_form(
+    request: Request,
+    referans_id: int = Form(...),
+    ad: str = Form(...),
+    soyad: str = Form(...),
+    email: str = Form(...),
+    telefon: str = Form(...),
+    sifre: str = Form(...),
+    sifre_tekrar: str = Form(...),
+    uyelik_turu: str = Form("Bireysel"),
+    ulke: str = Form("Türkiye"),
+    dogum_tarihi: str = Form(None),
+    cinsiyet: str = Form("KADIN"),
+    il: str = Form(None),
+    ilce: str = Form(None),
+    mahalle: str = Form(None),
+    tc_no: str = Form(None),
+    vergi_dairesi: str = Form(None),
+    vergi_no: str = Form(None),
+    posta_kodu: str = Form(None),
+    adres: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    if sifre != sifre_tekrar:
+        return HTMLResponse("Şifreler uyuşmuyor! <a href='javascript:history.back()'>Geri Dön</a>", status_code=400)
+    
+    # KullaniciKayit şemasına uygun veri hazırla
+    yeni_uye_data = schemas.KullaniciKayit(
+        tam_ad=f"{ad} {soyad}",
+        email=email,
+        telefon=telefon,
+        sifre=sifre,
+        referans_id=referans_id,
+        # Opsiyonel alanlar
+        tc_no=tc_no,
+        dogum_tarihi=dogum_tarihi,
+        cinsiyet=cinsiyet,
+        uyelik_turu=uyelik_turu,
+        ulke=ulke,
+        il=il,
+        ilce=ilce,
+        mahalle=mahalle,
+        adres=adres,
+        posta_kodu=posta_kodu,
+        vergi_dairesi=vergi_dairesi,
+        vergi_no=vergi_no
+    )
+    
+    try:
+        yeni_uye = crud.yeni_uye_kaydet(db, yeni_uye_data)
+        # Başarılı kayıt sonrası giriş sayfasına yönlendir
+        return templates.TemplateResponse("login.html", {
+            "request": request,
+            "basari": "Kaydınız başarıyla oluşturuldu! Giriş yapabilirsiniz."
+        })
+    except Exception as e:
+        return HTMLResponse(f"Kayıt hatası: {str(e)} <a href='javascript:history.back()'>Geri Dön</a>", status_code=500)
+
 @app.post("/kayit/", response_model=schemas.KullaniciCevap)
 def uye_kaydet_api(kullanici: schemas.KullaniciKayit, db: Session = Depends(get_db)):
     return crud.yeni_uye_kaydet(db=db, kullanici_verisi=kullanici)
@@ -371,7 +521,13 @@ def api_dashboard_getir(user_id: int, db: Session = Depends(get_db)):
 # app/main.py içine ekle
 
 @app.get("/api/tree/{user_id}")
-def get_tree_data(user_id: int, db: Session = Depends(get_db)):
+def get_tree_data(user_id: int, request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        raise HTTPException(status_code=401, detail="Giriş yapmalısınız")
+    
+    if request.state.user.id != user_id:
+        raise HTTPException(status_code=403, detail="Yetkisiz erişim")
+
     def build_node(u_id):
         user = db.query(models.Kullanici).filter(models.Kullanici.id == u_id).first()
         if not user:
@@ -394,8 +550,68 @@ def get_tree_data(user_id: int, db: Session = Depends(get_db)):
     
     return build_node(user_id)
 
+@app.get("/api/bekleyen-uyeler/{user_id}")
+def get_bekleyen_uyeler(user_id: int, request: Request, db: Session = Depends(get_db)):
+    if not request.state.user or request.state.user.id != user_id:
+        raise HTTPException(status_code=401, detail="Yetkisiz işlem")
+
+    # Kullanıcının referans olduğu ve henüz ağaca yerleşmemiş (parent_id=None) üyeleri getir
+    bekleyenler = db.query(models.Kullanici).filter(
+        models.Kullanici.referans_id == user_id,
+        models.Kullanici.parent_id == None
+    ).all()
+    
+    return [
+        {
+            "id": u.id, 
+            "uye_no": u.uye_no, 
+            "tam_ad": u.tam_ad, 
+            "email": u.email,
+            "telefon": u.telefon,
+            "rutbe": u.rutbe,
+            "kayit_tarihi": u.kayit_tarihi.strftime("%d.%m.%Y %H:%M") if u.kayit_tarihi else "-"
+        } 
+        for u in bekleyenler
+    ]
+
+@app.post("/api/yerlestir")
+def yerlestir_api(
+    request: Request,
+    uye_id: int = Form(...),
+    parent_id: int = Form(...),
+    kol: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    if not request.state.user:
+        return JSONResponse(status_code=401, content={"success": False, "message": "Giriş yapmalısınız"})
+
+    # Güvenlik: Sadece sponsoru olduğu üyeyi yerleştirebilir
+    uye = db.query(models.Kullanici).filter(models.Kullanici.id == uye_id).first()
+    if not uye:
+        return JSONResponse(status_code=404, content={"success": False, "message": "Üye bulunamadı"})
+    
+    if uye.referans_id != request.state.user.id:
+        return JSONResponse(status_code=403, content={"success": False, "message": "Bu üyeyi yerleştirme yetkiniz yok!"})
+
+    try:
+        crud.uyeyi_agaca_yerlestir(db, uye_id, parent_id, kol)
+        return {"success": True, "message": "Üye başarıyla yerleştirildi."}
+    except HTTPException as e:
+        return JSONResponse(status_code=e.status_code, content={"success": False, "message": e.detail})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "message": str(e)})
+
 @app.get("/panel/agac/{user_id}", response_class=HTMLResponse)
 def tree_page(request: Request, user_id: int, db: Session = Depends(get_db)):
+    # GÜVENLİK KONTROLÜ
+    current_user = request.state.user
+    if not current_user:
+        return RedirectResponse(url="/giris", status_code=303)
+    
+    # Başkasının ağacını görüntülemeyi engelle (Şimdilik sadece kendi ağacı)
+    if current_user.id != user_id:
+        return RedirectResponse(url=f"/panel/agac/{current_user.id}", status_code=303)
+
     # Temel template verileri
     return templates.TemplateResponse("tree.html", {
         "request": request,
@@ -449,6 +665,11 @@ def urun_detay(request: Request, urun_id: int, db: Session = Depends(get_db)):
 # SEPET
 @app.get("/sepet/{kullanici_id}", response_class=HTMLResponse)
 def sepet_sayfasi(request: Request, kullanici_id: int, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    if request.state.user.id != kullanici_id:
+        return RedirectResponse(url=f"/sepet/{request.state.user.id}", status_code=303)
+
     sepet = crud.sepet_detayi_getir(db, kullanici_id)
     return templates.TemplateResponse("sepet.html", {
         "request": request,
@@ -458,25 +679,50 @@ def sepet_sayfasi(request: Request, kullanici_id: int, db: Session = Depends(get
 
 # API: Sepete Ürün Ekle
 @app.post("/api/sepet/{kullanici_id}/ekle")
-def sepete_ekle_api(kullanici_id: int, urun_id: int = Form(...), adet: int = Form(1), db: Session = Depends(get_db)):
+def sepete_ekle_api(request: Request, kullanici_id: int, urun_id: int = Form(...), adet: int = Form(1), db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    
+    # Başkasının sepetine eklemeyi engelle -> Kendi sepetine yönlendir
+    if request.state.user.id != kullanici_id:
+        # Burada kullanıcı ID'sini düzeltip işlemi yapabiliriz ama güvenlik için reddetmek veya yönlendirmek daha iyi.
+        # Yönlendirme yaparsak POST verisi kaybolur. O yüzden işlem yapıp kendi sepetine yönlendirelim.
+        crud.sepete_urun_ekle(db, request.state.user.id, urun_id, adet)
+        return RedirectResponse(url=f"/sepet/{request.state.user.id}", status_code=303)
+
     crud.sepete_urun_ekle(db, kullanici_id, urun_id, adet)
     return RedirectResponse(url=f"/sepet/{kullanici_id}", status_code=303)
 
 # API: Sepetten Ürün Çıkar
 @app.get("/api/sepet/{kullanici_id}/cikar/{sepet_urun_id}")
-def sepetten_cikar_api(kullanici_id: int, sepet_urun_id: int, db: Session = Depends(get_db)):
+def sepetten_cikar_api(request: Request, kullanici_id: int, sepet_urun_id: int, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    if request.state.user.id != kullanici_id:
+        return RedirectResponse(url=f"/sepet/{request.state.user.id}", status_code=303)
+
     crud.sepetten_urun_cikar(db, kullanici_id, sepet_urun_id)
     return RedirectResponse(url=f"/sepet/{kullanici_id}", status_code=303)
 
 # API: Sipariş Oluştur
 @app.post("/api/siparis/{kullanici_id}/olustur")
-def siparis_olustur_api(kullanici_id: int, adres: str = Form(...), db: Session = Depends(get_db)):
+def siparis_olustur_api(request: Request, kullanici_id: int, adres: str = Form(...), db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    if request.state.user.id != kullanici_id:
+        return RedirectResponse(url=f"/sepet/{request.state.user.id}", status_code=303)
+
     siparis = crud.siparis_olustur(db, kullanici_id, adres)
     return RedirectResponse(url=f"/siparisler/{kullanici_id}", status_code=303)
 
 # SİPARİŞLERİM
 @app.get("/siparisler/{kullanici_id}", response_class=HTMLResponse)
 def siparisler_sayfasi(request: Request, kullanici_id: int, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    if request.state.user.id != kullanici_id:
+        return RedirectResponse(url=f"/siparisler/{request.state.user.id}", status_code=303)
+
     siparisler = crud.kullanici_siparislerini_getir(db, kullanici_id)
     return templates.TemplateResponse("siparisler.html", {
         "request": request,

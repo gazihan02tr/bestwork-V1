@@ -68,7 +68,11 @@ def seed_data():
                 referans_id=None,
                 parent_id=None,
                 kol=None,
-                rutbe="Yönetici"
+                rutbe="Yönetici",
+                uye_no="900000000",
+                tc_no="11111111111",
+                uyelik_turu="Kurumsal",
+                ulke="Türkiye"
             )
             db.add(root)
             db.commit()

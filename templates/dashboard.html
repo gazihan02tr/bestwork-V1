@@ -134,14 +134,14 @@
                             'icon': 'diversity_3',
                             'color': 'from-sky-700 to-sky-500',
                             'subtitle': None,
-                            'link': '/sponsored'
+                            'link': '/panel/sponsor-olduklarim'
                         },
                         {
                             'title': 'EKİBİM',
                             'value': ozet.toplam_sol_ekip ~ ' / ' ~ ozet.toplam_sag_ekip,
                             'icon': 'groups_2',
                             'color': 'from-orange-600 to-amber-500',
-                            'subtitle': 'Sol / Sağ üye',
+                            'subtitle': 'Sol / Sağ',
                             'link': '/panel/agac/' ~ ozet.id
                         },
                         {
@@ -161,10 +161,11 @@
                         },
                         {
                             'title': 'YERLEŞİM BEKLEYEN',
-                            'value': '0',
+                            'value': ozet.bekleyen_sayisi,
                             'icon': 'person_add',
                             'color': 'from-purple-600 to-fuchsia-500',
-                            'subtitle': 'Onay bekleyen'
+                            'subtitle': 'Onay bekleyen',
+                            'link': '/panel/bekleyenler'
                         },
                         {
                             'title': 'ANLIK KAZANÇ',

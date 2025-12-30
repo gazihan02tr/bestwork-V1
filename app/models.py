@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Float, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Float, DateTime, Text
 from datetime import datetime
 import enum
 from .database import Base
@@ -17,6 +17,24 @@ class Kullanici(Base):
     telefon = Column(String(20))
     sifre = Column(String(255))
     rutbe = Column(String, default="Distribütör")
+
+    # Kişisel Bilgiler
+    tc_no = Column(String(11), nullable=True)
+    dogum_tarihi = Column(DateTime, nullable=True)
+    cinsiyet = Column(String(10), nullable=True) # KADIN / ERKEK
+    uyelik_turu = Column(String(20), default="Bireysel") # Bireysel / Kurumsal
+    
+    # Adres Bilgileri
+    ulke = Column(String(50), default="Türkiye")
+    il = Column(String(50), nullable=True)
+    ilce = Column(String(50), nullable=True)
+    mahalle = Column(String(100), nullable=True)
+    adres = Column(Text, nullable=True)
+    posta_kodu = Column(String(10), nullable=True)
+
+    # Vergi Bilgileri (Kurumsal için)
+    vergi_dairesi = Column(String(100), nullable=True)
+    vergi_no = Column(String(20), nullable=True)
     
     # Bağlantılar
     referans_id = Column(Integer, ForeignKey("kullanicilar.id"), nullable=True)

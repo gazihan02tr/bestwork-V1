@@ -14,8 +14,24 @@ class KullaniciKayit(BaseModel):
     telefon: str
     sifre: str
     referans_id: int  # Davet eden kişi ID
-    parent_id: int    # Altına girilecek kişi ID
-    kol: KolSecimi    # Hangi kol? (SAG/SOL)
+    
+    # Opsiyonel hale getiriyoruz, formda yoksa otomatik atanacak
+    parent_id: Optional[int] = None
+    kol: Optional[KolSecimi] = None
+
+    # Yeni Alanlar
+    tc_no: Optional[str] = None
+    dogum_tarihi: Optional[str] = None # String olarak alıp backend'de çevirebiliriz
+    cinsiyet: Optional[str] = "KADIN"
+    uyelik_turu: Optional[str] = "Bireysel"
+    ulke: Optional[str] = "Türkiye"
+    il: Optional[str] = None
+    ilce: Optional[str] = None
+    mahalle: Optional[str] = None
+    adres: Optional[str] = None
+    posta_kodu: Optional[str] = None
+    vergi_dairesi: Optional[str] = None
+    vergi_no: Optional[str] = None
 
 # API'den geri dönecek (Cevap) verisi
 class KullaniciCevap(BaseModel):

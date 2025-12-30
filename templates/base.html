@@ -354,8 +354,8 @@
                 <div class="flex items-center gap-2">
                     {% if request.cookies.get("user_id") %}
                         <!-- Giriş Yapılmış Durum -->
-                        <a href="/panel/{{ request.cookies.get('user_id') }}" class="flex items-center p-1 pr-4 rounded-full hover:bg-surface-container-highest transition-all duration-300 ease-out group">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant group-hover:text-primary group-hover:bg-primary/10 transition-colors shrink-0">
+                        <a href="/panel/{{ request.cookies.get('user_id') }}" class="flex items-center p-1 pr-4 rounded-full bg-surface-container-highest/50 hover:bg-surface-container-highest transition-all duration-300 ease-out group">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-primary/10 transition-colors shrink-0">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
                             <div class="flex flex-col justify-center whitespace-nowrap pl-2">
@@ -423,30 +423,33 @@
                             <span class="material-symbols-outlined text-[18px] transition-transform duration-300 group-hover:rotate-180 text-on-surface-variant/50 group-hover:text-primary">expand_more</span>
                         </button>
                         
-                        <div class="absolute top-full left-0 mt-2 w-64 bg-white rounded-2xl shadow-md3-3 border border-outline-variant/10 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left scale-95 group-hover:scale-100 z-50">
-                            <div class="p-1.5 space-y-0.5">
-                                <div class="px-3 py-2 text-xs font-bold text-primary/50 uppercase tracking-wider">Hesap Ayarları</div>
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
-                                    <span class="material-symbols-outlined text-[20px]">inventory_2</span>
-                                    Varis Bilgileri
-                                </a>
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
-                                    <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
-                                    Banka Bilgilerim
-                                </a>
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
-                                    <span class="material-symbols-outlined text-[20px]">badge</span>
-                                    Üyelik Bilgilerim
-                                </a>
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
-                                    <span class="material-symbols-outlined text-[20px]">group_add</span>
-                                    Sponsor Olduklarım
-                                </a>
-                                <div class="h-px bg-outline-variant/10 my-1"></div>
-                                <a href="/sifre-degistir" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-error/5 transition-colors text-on-surface-variant hover:text-error">
-                                    <span class="material-symbols-outlined text-[20px]">lock_reset</span>
-                                    Şifre Değiştir
-                                </a>
+                        <!-- Dropdown Menu (Gap Fixed) -->
+                        <div class="absolute top-full left-0 pt-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left scale-95 group-hover:scale-100 z-50">
+                            <div class="bg-white rounded-2xl shadow-md3-3 border border-outline-variant/10 overflow-hidden">
+                                <div class="p-1.5 space-y-0.5">
+                                    <div class="px-3 py-2 text-xs font-bold text-primary/50 uppercase tracking-wider">Hesap Ayarları</div>
+                                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
+                                        <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+                                        Varis Bilgileri
+                                    </a>
+                                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
+                                        <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+                                        Banka Bilgilerim
+                                    </a>
+                                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
+                                        <span class="material-symbols-outlined text-[20px]">badge</span>
+                                        Üyelik Bilgilerim
+                                    </a>
+                                    <a href="/panel/sponsor-olduklarim" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
+                                        <span class="material-symbols-outlined text-[20px]">group_add</span>
+                                        Sponsor Olduklarım
+                                    </a>
+                                    <div class="h-px bg-outline-variant/10 my-1"></div>
+                                    <a href="/sifre-degistir" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-error/5 transition-colors text-on-surface-variant hover:text-error">
+                                        <span class="material-symbols-outlined text-[20px]">lock_reset</span>
+                                        Şifre Değiştir
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -459,26 +462,29 @@
                             <span class="material-symbols-outlined text-[18px] transition-transform duration-300 group-hover:rotate-180 text-on-surface-variant/50 group-hover:text-primary">expand_more</span>
                         </button>
                         
-                        <div class="absolute top-full left-0 mt-2 w-64 bg-white rounded-2xl shadow-md3-3 border border-outline-variant/10 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left scale-95 group-hover:scale-100 z-50">
-                            <div class="p-1.5 space-y-0.5">
-                                <div class="px-3 py-2 text-xs font-bold text-primary/50 uppercase tracking-wider">Finansal</div>
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
-                                    <span class="material-symbols-outlined text-[20px]">insights</span>
-                                    Prim Detayları
-                                </a>
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
-                                    <span class="material-symbols-outlined text-[20px]">rocket_launch</span>
-                                    Hızlı Başlangıç
-                                </a>
-                                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
-                                    <span class="material-symbols-outlined text-[20px]">stars</span>
-                                    Referans Bonusu
-                                </a>
-                                <div class="h-px bg-outline-variant/10 my-1"></div>
-                                <a href="/panel/agac/{{ request.cookies.get('user_id') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
-                                    <span class="material-symbols-outlined text-[20px]">account_tree</span>
-                                    Binary Ağacı
-                                </a>
+                        <!-- Dropdown Menu (Gap Fixed) -->
+                        <div class="absolute top-full left-0 pt-2 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-left scale-95 group-hover:scale-100 z-50">
+                            <div class="bg-white rounded-2xl shadow-md3-3 border border-outline-variant/10 overflow-hidden">
+                                <div class="p-1.5 space-y-0.5">
+                                    <div class="px-3 py-2 text-xs font-bold text-primary/50 uppercase tracking-wider">Finansal</div>
+                                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
+                                        <span class="material-symbols-outlined text-[20px]">insights</span>
+                                        Prim Detayları
+                                    </a>
+                                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
+                                        <span class="material-symbols-outlined text-[20px]">rocket_launch</span>
+                                        Hızlı Başlangıç
+                                    </a>
+                                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
+                                        <span class="material-symbols-outlined text-[20px]">stars</span>
+                                        Referans Bonusu
+                                    </a>
+                                    <div class="h-px bg-outline-variant/10 my-1"></div>
+                                    <a href="/panel/agac/{{ request.cookies.get('user_id') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-surface-container transition-colors text-on-surface-variant hover:text-primary">
+                                        <span class="material-symbols-outlined text-[20px]">account_tree</span>
+                                        Binary Ağacı
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

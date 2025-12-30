@@ -44,7 +44,14 @@ def ekonomiyi_tetikle(db: Session, baslangic_id: int, satis_pv: int, satis_cv: f
 
     ust_uye = db.query(models.Kullanici).filter(models.Kullanici.id == mevcut_uye.parent_id).first()
     if ust_uye:
-        if mevcut_uye.kol == "SOL":
+        # PV değerleri None ise 0 olarak başlat
+        if ust_uye.sol_pv is None: ust_uye.sol_pv = 0
+        if ust_uye.sag_pv is None: ust_uye.sag_pv = 0
+
+        # Kol kontrolü (Enum veya String uyumluluğu)
+        is_sol = (mevcut_uye.kol == models.KolPozisyon.SOL) or (str(mevcut_uye.kol) == "SOL")
+
+        if is_sol:
             ust_uye.sol_pv += satis_pv
         else:
             ust_uye.sag_pv += satis_pv
@@ -61,19 +68,55 @@ def yeni_uye_no_olustur(db: Session):
 
 # --- 3. ANA FONKSİYON: KAYIT ---
 def yeni_uye_kaydet(db: Session, kullanici_verisi: schemas.KullaniciKayit):
-    gercek_parent_id = en_alt_bos_yeri_bul(db, kullanici_verisi.parent_id, kullanici_verisi.kol)
+    # 1. E-posta Kontrolü
+    if db.query(models.Kullanici).filter(models.Kullanici.email == kullanici_verisi.email).first():
+        raise HTTPException(status_code=400, detail="Bu e-posta adresi zaten kayıtlı!")
+
+    # 2. TC Kimlik No Kontrolü
+    if kullanici_verisi.tc_no:
+        mevcut_tc = db.query(models.Kullanici).filter(models.Kullanici.tc_no == kullanici_verisi.tc_no).first()
+        if mevcut_tc:
+            raise HTTPException(status_code=400, detail="Bu TC Kimlik Numarası ile daha önce kayıt olunmuş!")
+
+    # 3. Telefon Numarası Kontrolü
+    if db.query(models.Kullanici).filter(models.Kullanici.telefon == kullanici_verisi.telefon).first():
+        raise HTTPException(status_code=400, detail="Bu telefon numarası zaten kayıtlı!")
+
+    # ARTIK OTOMATİK YERLEŞTİRME YOK
+    # Yeni üye parent_id=None ve kol=None olarak kaydedilir (Bekleme Odası)
     
     yeni_no = yeni_uye_no_olustur(db)
     
+    # Tarih formatını düzeltme (String gelirse)
+    dogum_tarihi_val = None
+    if kullanici_verisi.dogum_tarihi:
+        try:
+            dogum_tarihi_val = datetime.strptime(kullanici_verisi.dogum_tarihi, "%Y-%m-%d")
+        except:
+            pass
+
     yeni_uye = models.Kullanici(
         tam_ad=kullanici_verisi.tam_ad,
         email=kullanici_verisi.email,
         telefon=kullanici_verisi.telefon,
         sifre=kullanici_verisi.sifre,
         referans_id=kullanici_verisi.referans_id,
-        parent_id=gercek_parent_id,
-        kol=kullanici_verisi.kol,
-        uye_no=yeni_no
+        parent_id=None, # AĞAÇTA YERİ YOK (BEKLEMEDE)
+        kol=None,       # KOLU YOK (BEKLEMEDE)
+        uye_no=yeni_no,
+        # Yeni Alanlar
+        tc_no=kullanici_verisi.tc_no,
+        dogum_tarihi=dogum_tarihi_val,
+        cinsiyet=kullanici_verisi.cinsiyet,
+        uyelik_turu=kullanici_verisi.uyelik_turu,
+        ulke=kullanici_verisi.ulke,
+        il=kullanici_verisi.il,
+        ilce=kullanici_verisi.ilce,
+        mahalle=kullanici_verisi.mahalle,
+        adres=kullanici_verisi.adres,
+        posta_kodu=kullanici_verisi.posta_kodu,
+        vergi_dairesi=kullanici_verisi.vergi_dairesi,
+        vergi_no=kullanici_verisi.vergi_no
     )
     
     try:
@@ -81,21 +124,53 @@ def yeni_uye_kaydet(db: Session, kullanici_verisi: schemas.KullaniciKayit):
         db.commit()
         db.refresh(yeni_uye)
 
-        kayit_pv = ayar_getir(db, "kayit_pv", 100.0)
-        kayit_cv = ayar_getir(db, "kayit_cv", 50.0)
-        ref_orani = ayar_getir(db, "referans_orani", 0.40)
-
-        ekonomiyi_tetikle(db, yeni_uye.id, satis_pv=int(kayit_pv), satis_cv=kayit_cv)
-        referans_bonusu_ode(db, yeni_uye.referans_id, (kayit_cv * ref_orani), yeni_uye.tam_ad)
+        # NOT: Puan dağıtımı ve referans bonusu artık üye ağaca yerleştirildiğinde yapılacak.
+        # Burada sadece kayıt işlemi yapılıyor.
 
         return yeni_uye
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Hata: {str(e)}")
 
+# --- YENİ: ÜYEYİ AĞACA YERLEŞTİR ---
+def uyeyi_agaca_yerlestir(db: Session, uye_id: int, parent_id: int, kol: str):
+    uye = db.query(models.Kullanici).filter(models.Kullanici.id == uye_id).first()
+    if not uye:
+        raise HTTPException(status_code=404, detail="Üye bulunamadı")
+    
+    if uye.parent_id is not None:
+        raise HTTPException(status_code=400, detail="Üye zaten ağaca yerleştirilmiş")
+
+    # Hedef yerin boş olup olmadığını kontrol et
+    hedef_yer_dolu = db.query(models.Kullanici).filter(
+        models.Kullanici.parent_id == parent_id,
+        models.Kullanici.kol == kol
+    ).first()
+    
+    if hedef_yer_dolu:
+        raise HTTPException(status_code=400, detail="Seçilen pozisyon dolu!")
+
+    uye.parent_id = parent_id
+    uye.kol = kol
+    db.commit()
+    
+    # Puanları ve Bonusları Şimdi İşle
+    kayit_pv = ayar_getir(db, "kayit_pv", 100.0)
+    kayit_cv = ayar_getir(db, "kayit_cv", 50.0)
+    ref_orani = ayar_getir(db, "referans_orani", 0.40)
+
+    ekonomiyi_tetikle(db, uye.id, satis_pv=int(kayit_pv), satis_cv=kayit_cv)
+    referans_bonusu_ode(db, uye.referans_id, (kayit_cv * ref_orani), uye.tam_ad)
+    
+    return True
+
 # --- 4. GÜNCELLENEN EŞLEŞME: %13 KISA KOL MANTIĞI ---
 def eslesme_kontrol_et(db: Session, kullanici_id: int):
     kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    
+    # PV değerleri None ise 0 olarak başlat
+    if kullanici.sol_pv is None: kullanici.sol_pv = 0
+    if kullanici.sag_pv is None: kullanici.sag_pv = 0
     
     # Her iki kolda da puan birikmiş mi?
     if kullanici.sol_pv > 0 and kullanici.sag_pv > 0:
@@ -109,6 +184,7 @@ def eslesme_kontrol_et(db: Session, kullanici_id: int):
         kazanc = odenecek_puan * odeme_orani
         
         # Bakiyeyi güncelle ve puanları kollardan düş (Dengeleme)
+        if kullanici.toplam_cv is None: kullanici.toplam_cv = 0.0
         kullanici.toplam_cv += kazanc
         kullanici.sol_pv -= odenecek_puan
         kullanici.sag_pv -= odenecek_puan
