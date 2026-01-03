@@ -7,3 +7,4 @@ python-dotenv==1.2.1
 email-validator
 jinja2
 python-multipart
+websockets
