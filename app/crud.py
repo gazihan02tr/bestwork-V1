@@ -3,7 +3,9 @@ from sqlalchemy import func
 from . import models, schemas
 from fastapi import HTTPException
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import uuid
+import random
 
 # --- YARDIMCI: CÜZDAN HAREKETİ KAYDET ---
 def log_yaz(db: Session, user_id: int, miktar: float, tip: str, mesaj: str):
@@ -61,10 +63,15 @@ def ekonomiyi_tetikle(db: Session, baslangic_id: int, satis_pv: int, satis_cv: f
         ekonomiyi_tetikle(db, ust_uye.id, satis_pv, satis_cv)
 
 def yeni_uye_no_olustur(db: Session):
-    en_son = db.query(func.max(models.Kullanici.uye_no)).filter(models.Kullanici.uye_no.like("90%")).scalar()
-    if en_son:
-        return str(int(en_son) + 1)
-    return "900000001"
+    while True:
+        # 90 ile başlayan, toplam 9 haneli (90xxxxxxx)
+        suffix = ''.join([str(random.randint(0, 9)) for _ in range(7)])
+        aday_no = "90" + suffix
+        
+        # Veritabanında var mı kontrol et
+        mevcut = db.query(models.Kullanici).filter(models.Kullanici.uye_no == aday_no).first()
+        if not mevcut:
+            return aday_no
 
 # --- 3. ANA FONKSİYON: KAYIT ---
 def yeni_uye_kaydet(db: Session, kullanici_verisi: schemas.KullaniciKayit):
@@ -152,6 +159,7 @@ def uyeyi_agaca_yerlestir(db: Session, uye_id: int, parent_id: int, kol: str):
 
     uye.parent_id = parent_id
     uye.kol = kol
+    uye.yerlestirme_tarihi = datetime.now(ZoneInfo("Europe/Istanbul"))
     db.commit()
     
     # Puanları ve Bonusları Şimdi İşle

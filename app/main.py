@@ -30,17 +30,45 @@ app = FastAPI(title="BestWork Binary Network Marketing")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+def format_large_number(value):
+    if value is None:
+        return "0"
+    try:
+        num = float(value)
+    except (ValueError, TypeError):
+        return str(value)
+        
+    if num >= 1_000_000:
+        return f"{num/1_000_000:.1f}M"
+    elif num >= 100_000:
+        return f"{num/1_000:.0f}K"
+    else:
+        if num % 1 == 0:
+            return str(int(num))
+        return f"{num:.2f}"
+
+templates.env.filters["format_large_number"] = format_large_number
+
 # --- MIDDLEWARE: KULLANICI BİLGİSİNİ YÜKLE ---
 @app.middleware("http")
 async def add_user_to_request(request: Request, call_next):
     user_id = request.cookies.get("user_id")
     request.state.user = None
+    request.state.cart_count = 0
+    
     if user_id:
         db = SessionLocal()
         try:
             user = db.query(models.Kullanici).filter(models.Kullanici.id == int(user_id)).first()
             if user:
                 request.state.user = user
+                
+                # Sepet sayısını hesapla
+                sepet = db.query(models.Sepet).filter(models.Sepet.kullanici_id == user.id).first()
+                if sepet:
+                    cart_items = db.query(models.SepetUrun).filter(models.SepetUrun.sepet_id == sepet.id).all()
+                    total_items = sum(item.adet for item in cart_items)
+                    request.state.cart_count = total_items
         except:
             pass
         finally:
@@ -139,15 +167,15 @@ def get_dashboard_data(user_id: int, db: Session):
         "Diamond", 
         "Double Diamond", 
         "Triple Diamond", 
-        "Presidential", 
-        "Double Presidential", 
-        "3-Star Presidential"
+        "President", 
+        "Double President", 
+        "Triple President"
     ]
     mevcut_rutbe = getattr(kullanici, 'rutbe', 'Distribütör')
     
     try:
         mevcut_index = rutbeler.index(mevcut_rutbe)
-        sonraki_rutbe = rutbeler[mevcut_index + 1] if mevcut_index + 1 < len(rutbeler) else "Maksimum Seviye"
+        sonraki_rutbe = rutbeler[mevcut_index + 1] if mevcut_index + 1 < len(rutbeler) else None
     except ValueError:
         sonraki_rutbe = "Platinum" # Bilinmeyen rütbe ise varsayılan
 
@@ -345,8 +373,8 @@ def career_tracking_page(request: Request, db: Session = Depends(get_db)):
             "ad": rutbe["ad"],
             "hedef_sol": hedef_sol,
             "hedef_sag": hedef_sag,
-            "mevcut_sol": current_sol,
-            "mevcut_sag": current_sag,
+            "mevcut_sol": min(current_sol, hedef_sol) if hedef_sol > 0 else current_sol,
+            "mevcut_sag": min(current_sag, hedef_sag) if hedef_sag > 0 else current_sag,
             "sol_yuzde": sol_yuzde,
             "sag_yuzde": sag_yuzde,
             "tamamlandi": tamamlandi,

@@ -1,7 +1,11 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Float, DateTime, Text
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import enum
 from .database import Base
+
+def get_turkey_time():
+    return datetime.now(ZoneInfo("Europe/Istanbul"))
 
 class KolPozisyon(str, enum.Enum):
     SAG = "SAG"
@@ -20,7 +24,7 @@ class Kullanici(Base):
 
     # Kişisel Bilgiler
     tc_no = Column(String(11), nullable=True)
-    dogum_tarihi = Column(DateTime, nullable=True)
+    dogum_tarihi = Column(DateTime(timezone=True), nullable=True)
     cinsiyet = Column(String(10), nullable=True) # KADIN / ERKEK
     uyelik_turu = Column(String(20), default="Bireysel") # Bireysel / Kurumsal
     
@@ -48,7 +52,8 @@ class Kullanici(Base):
     toplam_sol_pv = Column(Integer, default=0)
     toplam_sag_pv = Column(Integer, default=0)
 
-    kayit_tarihi = Column(DateTime, default=datetime.utcnow)
+    kayit_tarihi = Column(DateTime(timezone=True), default=get_turkey_time)
+    yerlestirme_tarihi = Column(DateTime(timezone=True), nullable=True)
 
 class Ayarlar(Base):
     __tablename__ = "ayarlar"
@@ -68,7 +73,7 @@ class CuzdanHareket(Base):
     miktar = Column(Float)
     islem_tipi = Column(String) # "REFERANS", "ESLESME", "LIDERLIK"
     aciklama = Column(String)
-    tarih = Column(DateTime, default=datetime.utcnow)
+    tarih = Column(DateTime(timezone=True), default=get_turkey_time)
 
 class IletisimMesaji(Base):
     __tablename__ = "iletisim_mesajlari"
@@ -79,7 +84,7 @@ class IletisimMesaji(Base):
     konu = Column(String)
     mesaj = Column(Text)
     takip_no = Column(String, unique=True, index=True)
-    tarih = Column(DateTime, default=datetime.utcnow)
+    tarih = Column(DateTime(timezone=True), default=get_turkey_time)
     durum = Column(String, default="Beklemede") # Beklemede, Okundu, Cevaplandı
 
 class NesilAyari(Base):
@@ -99,7 +104,7 @@ class Varis(Base):
     email = Column(String(100))
     yakinlik = Column(String(50))
     adres = Column(Text)
-    olusturma_tarihi = Column(DateTime, default=datetime.utcnow)
+    olusturma_tarihi = Column(DateTime(timezone=True), default=get_turkey_time)
 
 # E-TİCARET MODELLERİ
 
@@ -111,7 +116,7 @@ class Kategori(Base):
     aciklama = Column(Text)
     resim_url = Column(String(500))
     aktif = Column(Boolean, default=True)
-    olusturma_tarihi = Column(DateTime, default=datetime.utcnow)
+    olusturma_tarihi = Column(DateTime(timezone=True), default=get_turkey_time)
 
 class Urun(Base):
     __tablename__ = "urunler"
@@ -126,15 +131,15 @@ class Urun(Base):
     resim_url = Column(String(500))
     pv_degeri = Column(Integer, default=0)  # Network marketing için PV puanı
     aktif = Column(Boolean, default=True)
-    olusturma_tarihi = Column(DateTime, default=datetime.utcnow)
+    olusturma_tarihi = Column(DateTime(timezone=True), default=get_turkey_time)
 
 class Sepet(Base):
     __tablename__ = "sepetler"
     
     id = Column(Integer, primary_key=True, index=True)
     kullanici_id = Column(Integer, ForeignKey("kullanicilar.id"))
-    olusturma_tarihi = Column(DateTime, default=datetime.utcnow)
-    guncelleme_tarihi = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    olusturma_tarihi = Column(DateTime(timezone=True), default=get_turkey_time)
+    guncelleme_tarihi = Column(DateTime(timezone=True), default=get_turkey_time, onupdate=get_turkey_time)
 
 class SepetUrun(Base):
     __tablename__ = "sepet_urunler"
@@ -143,7 +148,7 @@ class SepetUrun(Base):
     sepet_id = Column(Integer, ForeignKey("sepetler.id"))
     urun_id = Column(Integer, ForeignKey("urunler.id"))
     adet = Column(Integer, default=1)
-    ekleme_tarihi = Column(DateTime, default=datetime.utcnow)
+    ekleme_tarihi = Column(DateTime(timezone=True), default=get_turkey_time)
 
 class Siparis(Base):
     __tablename__ = "siparisler"
@@ -154,7 +159,7 @@ class Siparis(Base):
     toplam_pv = Column(Integer, default=0)
     durum = Column(String(50), default="BEKLEMEDE")  # BEKLEMEDE, ONAYLANDI, KARGODA, TESLIM_EDILDI
     adres = Column(Text)
-    olusturma_tarihi = Column(DateTime, default=datetime.utcnow)
+    olusturma_tarihi = Column(DateTime(timezone=True), default=get_turkey_time)
 
 class SiparisUrun(Base):
     __tablename__ = "siparis_urunler"

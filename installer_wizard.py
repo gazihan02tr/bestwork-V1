@@ -15,6 +15,7 @@ import webbrowser
 import threading
 import time
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import Optional
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
@@ -60,7 +61,7 @@ installation_state = {
 
 async def log_message(message: str, type: str = "info"):
     """Log mesajı ekle ve WebSocket üzerinden gönder"""
-    timestamp = datetime.now().strftime("%H:%M:%S")
+    timestamp = datetime.now(ZoneInfo("Europe/Istanbul")).strftime("%H:%M:%S")
     log_entry = {
         'timestamp': timestamp,
         'message': message,
@@ -102,11 +103,14 @@ HTML_TEMPLATE = """
         body {
             font-family: 'Roboto', sans-serif;
             background-color: #f5f5f5; /* MD3 Surface Container Low */
+            color: #1D1B20;
+            transition: background-color 0.3s, color 0.3s;
         }
         .md3-card {
             background-color: #ffffff; /* MD3 Surface */
             border-radius: 24px; /* MD3 Large Shape */
             box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30); /* MD3 Elevation 1 */
+            transition: background-color 0.3s;
         }
         .md3-filled-btn {
             background-color: #6750A4; /* MD3 Primary */
@@ -130,7 +134,7 @@ HTML_TEMPLATE = """
             background-color: #f0f0f0; /* Surface Container Highest */
             border-radius: 4px 4px 0 0;
             border-bottom: 1px solid #49454F; /* Outline */
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, border-color 0.2s;
         }
         .md3-text-field:focus-within {
             border-bottom: 2px solid #6750A4; /* Primary */
@@ -165,6 +169,47 @@ HTML_TEMPLATE = """
             color: #00ff00;
             font-family: monospace;
         }
+
+        /* Dark Mode Styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #141218; /* MD3 Dark Surface Container Low */
+                color: #E6E1E5;
+            }
+            .md3-card {
+                background-color: #1D1B20; /* MD3 Dark Surface Container */
+                box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.3), 0px 1px 2px 0px rgba(0, 0, 0, 0.6);
+            }
+            .md3-filled-btn {
+                background-color: #D0BCFF; /* MD3 Dark Primary */
+                color: #381E72; /* MD3 Dark On Primary */
+            }
+            .md3-filled-btn:hover {
+                background-color: #E8DEF8;
+            }
+            .md3-filled-btn:disabled {
+                background-color: #E6E1E51F;
+                color: #E6E1E561;
+            }
+            .md3-text-field {
+                background-color: #49454F; /* MD3 Dark Surface Container Highest */
+                border-bottom: 1px solid #938F99;
+            }
+            .md3-text-field:focus-within {
+                border-bottom: 2px solid #D0BCFF;
+                background-color: #4F378B;
+            }
+            .md3-text-field input {
+                color: #E6E1E5;
+            }
+            .md3-text-field label {
+                color: #CAC4D0;
+            }
+            .md3-text-field input:focus ~ label,
+            .md3-text-field input:not(:placeholder-shown) ~ label {
+                color: #D0BCFF;
+            }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -174,8 +219,8 @@ HTML_TEMPLATE = """
         <!-- Sol Taraf: Başlık ve Form -->
         <div class="space-y-6">
             <div>
-                <h1 class="text-3xl font-normal text-[#1D1B20]">BestSoft</h1>
-                <p class="text-[#49454F] text-lg">Kurulum Ekranı</p>
+                <h1 class="text-3xl font-normal text-[#1D1B20] dark:text-[#E6E1E5]">BestSoft</h1>
+                <p class="text-[#49454F] dark:text-[#CAC4D0] text-lg">Kurulum Ekranı</p>
             </div>
 
             <form id="dbForm" class="space-y-4">
@@ -217,30 +262,30 @@ HTML_TEMPLATE = """
         <!-- Sağ Taraf: İşlem ve Loglar -->
         <div class="flex flex-col space-y-6">
             
-            <div class="bg-[#F3EDF7] p-6 rounded-2xl space-y-4">
-                <h2 class="text-xl text-[#1D1B20] font-medium">Sistem Kurulumu</h2>
-                <p class="text-[#49454F] text-sm">Veritabanı tabloları oluşturulacak ve örnek veriler yüklenecektir.</p>
+            <div class="bg-[#F3EDF7] dark:bg-[#2B2930] p-6 rounded-2xl space-y-4 transition-colors duration-300">
+                <h2 class="text-xl text-[#1D1B20] dark:text-[#E6E1E5] font-medium">Sistem Kurulumu</h2>
+                <p class="text-[#49454F] dark:text-[#CAC4D0] text-sm">Veritabanı tabloları oluşturulacak ve örnek veriler yüklenecektir.</p>
                 
-                <button type="button" onclick="startInstallation()" id="installBtn" disabled class="md3-filled-btn w-full flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20]">
+                <button type="button" onclick="startInstallation()" id="installBtn" disabled class="md3-filled-btn w-full flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] dark:bg-[#4ADE80] dark:text-[#052e16] dark:hover:bg-[#22c55e]">
                     <span class="material-symbols-outlined text-lg">rocket_launch</span>
                     Kurulumu Başlat
                 </button>
 
                 <!-- Progress Bar -->
                 <div id="progressContainer" class="hidden space-y-1">
-                    <div class="flex justify-between text-xs text-[#49454F]">
+                    <div class="flex justify-between text-xs text-[#49454F] dark:text-[#CAC4D0]">
                         <span id="progressText">Hazırlanıyor...</span>
                         <span id="progressPercent">0%</span>
                     </div>
-                    <div class="w-full bg-[#E0E0E0] rounded-full h-1">
-                        <div id="progressBar" class="bg-[#6750A4] h-1 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    <div class="w-full bg-[#E0E0E0] dark:bg-[#49454F] rounded-full h-1">
+                        <div id="progressBar" class="bg-[#6750A4] dark:bg-[#D0BCFF] h-1 rounded-full transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
 
             <div class="flex-1 flex flex-col">
-                <h3 class="text-sm font-medium text-[#49454F] mb-2">Sistem Logları</h3>
-                <div id="logContainer" class="terminal-log flex-1 rounded-xl p-4 text-xs overflow-y-auto h-48 custom-scrollbar">
+                <h3 class="text-sm font-medium text-[#49454F] dark:text-[#CAC4D0] mb-2">Sistem Logları</h3>
+                <div id="logContainer" class="terminal-log flex-1 rounded-xl p-4 text-xs overflow-y-auto h-48 custom-scrollbar border border-transparent dark:border-[#49454F]">
                     <div class="text-gray-400">> BestSoft Kurulum Sihirbazı hazır.</div>
                 </div>
             </div>
@@ -523,12 +568,66 @@ async def run_installation():
                     referans_id=None,
                     parent_id=None,
                     kol=None,
-                    uye_no="900000001"
+                    uye_no="900000001",
+                    kayit_tarihi=datetime.now(ZoneInfo("Europe/Istanbul")),
+                    yerlestirme_tarihi=datetime.now(ZoneInfo("Europe/Istanbul")),
+                    sol_pv=0,
+                    sag_pv=0
                 )
                 db.add(root)
                 db.commit()
+                db.refresh(root)
                 await log_message(f"✅ Kök Kullanıcı Oluşturuldu: {root.tam_ad}", "success")
                 await log_message(f"📧 Email: admin@bestwork.com | Şifre: 123456", "info")
+                
+                # Bekleyen Üyeler (Örnek)
+                bekleyen1 = models.Kullanici(
+                    uye_no="900000002",
+                    tam_ad="Ahmet Yılmaz",
+                    email="ahmet@test.com",
+                    sifre="123",
+                    telefon="5551112233",
+                    referans_id=root.id,
+                    parent_id=None,
+                    kol=None,
+                    kayit_tarihi=datetime.now(ZoneInfo("Europe/Istanbul"))
+                )
+                
+                bekleyen2 = models.Kullanici(
+                    uye_no="900000003",
+                    tam_ad="Ayşe Demir",
+                    email="ayse@test.com",
+                    sifre="123",
+                    telefon="5554445566",
+                    referans_id=root.id,
+                    parent_id=None,
+                    kol=None,
+                    kayit_tarihi=datetime.now(ZoneInfo("Europe/Istanbul"))
+                )
+                
+                db.add(bekleyen1)
+                db.add(bekleyen2)
+                db.commit()
+                await log_message("✅ Örnek bekleyen üyeler eklendi.", "success")
+
+                # Varsayılan Ayarlar
+                varsayilan_ayarlar = {
+                    "kayit_pv": 100.0,
+                    "kayit_cv": 50.0,
+                    "referans_orani": 0.20,
+                    "eslesme_kazanc": 10.0,
+                    "matching_orani": 0.10,
+                    "kisa_kol_oran": 0.13
+                }
+
+                for anahtar, deger in varsayilan_ayarlar.items():
+                    existing_setting = db.query(models.Ayarlar).filter(models.Ayarlar.anahtar == anahtar).first()
+                    if not existing_setting:
+                        db.add(models.Ayarlar(anahtar=anahtar, deger=deger))
+                
+                db.commit()
+                await log_message("✅ Varsayılan ayarlar yüklendi.", "success")
+
         except Exception as e:
             db.rollback()
             raise e
