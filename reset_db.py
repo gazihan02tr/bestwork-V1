@@ -87,6 +87,113 @@ def reset_database():
     
     db.commit()
     print("Varsayılan ayarlar yüklendi.")
+
+    # Kategoriler ve Ürünler
+    print("Örnek ürünler ve kategoriler ekleniyor...")
+    
+    # Varsayılan Resim URL'si (Placeholder)
+    DEFAULT_IMAGE_URL = "https://placehold.co/600x400?text=Urun+Resmi"
+    
+    kategoriler = [
+        {
+            "ad": "Gıda Takviyeleri",
+            "aciklama": "Sağlıklı yaşam için doğal takviyeler",
+            "resim_url": DEFAULT_IMAGE_URL
+        },
+        {
+            "ad": "Kişisel Bakım",
+            "aciklama": "Cilt ve vücut bakım ürünleri",
+            "resim_url": DEFAULT_IMAGE_URL
+        },
+        {
+            "ad": "İçecekler",
+            "aciklama": "Enerji ve sağlık içecekleri",
+            "resim_url": DEFAULT_IMAGE_URL
+        }
+    ]
+
+    db_kategoriler = []
+    for kat_data in kategoriler:
+        kategori = models.Kategori(**kat_data)
+        db.add(kategori)
+        db.commit()
+        db.refresh(kategori)
+        db_kategoriler.append(kategori)
+        print(f"Kategori eklendi: {kategori.ad}")
+
+    # Ürünler
+    urunler = [
+        # Gıda Takviyeleri
+        {
+            "ad": "Omega 3 Balık Yağı",
+            "aciklama": "Yüksek EPA ve DHA içeren balık yağı takviyesi.",
+            "fiyat": 450.0,
+            "indirimli_fiyat": 399.0,
+            "stok": 100,
+            "kategori_id": db_kategoriler[0].id,
+            "resim_url": DEFAULT_IMAGE_URL,
+            "pv_degeri": 25
+        },
+        {
+            "ad": "Multivitamin Kompleks",
+            "aciklama": "Günlük vitamin ve mineral ihtiyacınızı karşılar.",
+            "fiyat": 350.0,
+            "indirimli_fiyat": None,
+            "stok": 150,
+            "kategori_id": db_kategoriler[0].id,
+            "resim_url": DEFAULT_IMAGE_URL,
+            "pv_degeri": 20
+        },
+        # Kişisel Bakım
+        {
+            "ad": "Doğal Yüz Kremi",
+            "aciklama": "Aloe vera özlü nemlendirici yüz kremi.",
+            "fiyat": 250.0,
+            "indirimli_fiyat": 199.0,
+            "stok": 80,
+            "kategori_id": db_kategoriler[1].id,
+            "resim_url": DEFAULT_IMAGE_URL,
+            "pv_degeri": 15
+        },
+        {
+            "ad": "Bitkisel Şampuan",
+            "aciklama": "Saç dökülmesine karşı etkili bitkisel şampuan.",
+            "fiyat": 180.0,
+            "indirimli_fiyat": None,
+            "stok": 200,
+            "kategori_id": db_kategoriler[1].id,
+            "resim_url": DEFAULT_IMAGE_URL,
+            "pv_degeri": 10
+        },
+        # İçecekler
+        {
+            "ad": "Detox Çayı",
+            "aciklama": "Vücuttan toksin atmanıza yardımcı bitki çayı.",
+            "fiyat": 120.0,
+            "indirimli_fiyat": 99.0,
+            "stok": 300,
+            "kategori_id": db_kategoriler[2].id,
+            "resim_url": DEFAULT_IMAGE_URL,
+            "pv_degeri": 5
+        },
+        {
+            "ad": "Enerji İçeceği",
+            "aciklama": "Doğal kafein içeren enerji içeceği.",
+            "fiyat": 45.0,
+            "indirimli_fiyat": None,
+            "stok": 500,
+            "kategori_id": db_kategoriler[2].id,
+            "resim_url": DEFAULT_IMAGE_URL,
+            "pv_degeri": 2
+        }
+    ]
+
+    for urun_data in urunler:
+        urun = models.Urun(**urun_data)
+        db.add(urun)
+        print(f"Ürün eklendi: {urun.ad}")
+    
+    db.commit()
     
     db.close()
     print("İşlem tamamlandı.")

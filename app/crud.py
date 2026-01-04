@@ -500,3 +500,66 @@ def varis_sil(db: Session, varis_id: int, kullanici_id: int):
         db.commit()
         return True
     return False
+
+# --- DASHBOARD DATA ---
+def get_dashboard_data(user_id: int, db: Session):
+    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == user_id).first()
+    if not kullanici:
+        return None
+
+    def ekip_sayisini_bul(parent_id, kol=None):
+        sorgu = db.query(models.Kullanici).filter(models.Kullanici.parent_id == parent_id)
+        if kol:
+            sorgu = sorgu.filter(models.Kullanici.kol == kol)
+        ilk_katman = sorgu.all()
+        toplam = len(ilk_katman)
+        for alt in ilk_katman:
+            toplam += ekip_sayisini_bul(alt.id)
+        return toplam
+
+    sol_ekip = ekip_sayisini_bul(user_id, "SOL")
+    sag_ekip = ekip_sayisini_bul(user_id, "SAG")
+    referanslar = db.query(models.Kullanici).filter(models.Kullanici.referans_id == user_id).count()
+    bekleyenler = db.query(models.Kullanici).filter(
+        models.Kullanici.referans_id == user_id,
+        models.Kullanici.parent_id == None
+    ).count()
+
+    # Rütbe Mantığı
+    rutbeler = [
+        "Distribütör", 
+        "Platinum", 
+        "Pearl", 
+        "Sapphire", 
+        "Ruby", 
+        "Emerald", 
+        "Diamond", 
+        "Double Diamond", 
+        "Triple Diamond", 
+        "President", 
+        "Double President", 
+        "Triple President"
+    ]
+    mevcut_rutbe = getattr(kullanici, 'rutbe', 'Distribütör')
+    
+    try:
+        mevcut_index = rutbeler.index(mevcut_rutbe)
+        sonraki_rutbe = rutbeler[mevcut_index + 1] if mevcut_index + 1 < len(rutbeler) else None
+    except ValueError:
+        sonraki_rutbe = "Platinum" # Bilinmeyen rütbe ise varsayılan
+
+    return {
+        "id": kullanici.id,
+        "uye_no": kullanici.uye_no,
+        "tam_ad": kullanici.tam_ad,
+        "email": kullanici.email,
+        "rutbe": mevcut_rutbe,
+        "sonraki_rutbe": sonraki_rutbe,
+        "toplam_cv": kullanici.toplam_cv,
+        "mevcut_sol_pv": kullanici.sol_pv,
+        "mevcut_sag_pv": kullanici.sag_pv,
+        "toplam_sol_ekip": sol_ekip,
+        "toplam_sag_ekip": sag_ekip,
+        "referans_sayisi": referanslar,
+        "bekleyen_sayisi": bekleyenler
+    }

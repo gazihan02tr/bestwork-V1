@@ -2,6 +2,30 @@
 
 ## Sürüm Geçmişi
 
+### v8.0 (04.01.2026) - Mimari Refactoring ve Güvenlik Güncellemesi
+
+Bu sürümde sistemin altyapısı tamamen modernize edilmiş, güvenlik açıkları kapatılmış ve kod tabanı modüler hale getirilmiştir.
+
+#### 1. Mimari Değişiklikler (Refactoring)
+*   **Router Pattern'e Geçiş:** Monolitik `main.py` yapısı terk edildi. Uygulama mantığı modüllere ayrıldı:
+    *   `app/routers/auth.py`: Kimlik doğrulama işlemleri.
+    *   `app/routers/mlm.py`: Ağaç yapısı ve network marketing mantığı.
+    *   `app/routers/shop.py`: E-ticaret, sepet ve sipariş işlemleri.
+    *   `app/routers/admin.py`: Yönetim paneli işlemleri.
+    *   `app/routers/dashboard.py`: Kullanıcı paneli ve raporlar.
+*   **Bağımlılık Yönetimi:** Veritabanı ve template bağımlılıkları `app/dependencies.py` altında merkezileştirildi.
+
+#### 2. Güvenlik İyileştirmeleri
+*   **Şifre Hashleme:** Kullanıcı şifrelerinin veritabanında düz metin (plain text) olarak saklanması engellendi.
+    *   `passlib` ve `bcrypt` kütüphaneleri entegre edildi.
+    *   Kayıt ve şifre değiştirme işlemlerinde otomatik hashleme devreye alındı.
+*   **Güvenli Oturum:** Giriş işlemleri `app/utils.py` üzerindeki güvenli doğrulama fonksiyonlarına bağlandı.
+
+#### 3. Temizlik ve Düzenlemeler
+*   **Kod Temizliği:** `main.py` dosyası 900+ satırdan ~100 satıra düşürüldü.
+*   **Dosya Temizliği:** Kullanılmayan eski şablon dosyaları (`_old.html` uzantılı) sistemden kaldırıldı.
+*   **Sabitler:** Rütbe gereksinimleri gibi konfigürasyon verileri `app/utils.py` dosyasına taşındı.
+
 ### v7.0 (03.01.2026) - Kapsamlı Sistem Güncellemesi ve Optimizasyonlar
 
 Bu sürümde kullanıcı arayüzü (UI), veritabanı mantığı ve sistem yerelleştirmesi üzerinde önemli iyileştirmeler yapılmıştır.
