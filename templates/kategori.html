@@ -20,7 +20,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {% if urunler %}
                 {% for urun in urunler %}
-                <div class="group flex flex-col bg-white rounded-2xl p-3 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-primary/20">
+                <div class="group flex flex-col bg-surface rounded-2xl p-3 shadow-md hover:shadow-xl transition-all duration-300 border border-outline-variant/20 hover:border-primary/20">
                     <!-- Image Container -->
                     <div class="relative aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-4">
                         <a href="/urun/{{ urun.id }}" class="block w-full h-full">
@@ -31,10 +31,10 @@
                         
                         <!-- Floating Actions -->
                         <div class="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-4 group-hover:translate-x-0">
-                            <button class="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-primary hover:text-white transition-colors">
+                            <button class="w-10 h-10 rounded-full bg-surface/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-primary hover:text-on-primary transition-colors text-on-surface">
                                 <span class="material-symbols-outlined text-[20px]">favorite</span>
                             </button>
-                            <button class="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-primary hover:text-white transition-colors">
+                            <button class="w-10 h-10 rounded-full bg-surface/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-primary hover:text-on-primary transition-colors text-on-surface">
                                 <span class="material-symbols-outlined text-[20px]">visibility</span>
                             </button>
                         </div>
@@ -66,7 +66,7 @@
                             <form action="/api/sepet/1/ekle" method="POST">
                                 <input type="hidden" name="urun_id" value="{{ urun.id }}">
                                 <input type="hidden" name="adet" value="1">
-                                <button type="submit" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-md3-1 hover:shadow-md3-2 hover:scale-110 transition-all active:scale-95">
+                                <button type="submit" class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md3-1 hover:shadow-md3-2 hover:scale-110 transition-all active:scale-95">
                                     <span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
                                 </button>
                             </form>

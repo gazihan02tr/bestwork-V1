@@ -21,6 +21,7 @@ class Kullanici(Base):
     telefon = Column(String(20))
     sifre = Column(String(255))
     rutbe = Column(String, default="Distribütör")
+    profil_resmi = Column(String, nullable=True)
 
     # Kişisel Bilgiler
     tc_no = Column(String(11), nullable=True)
@@ -171,3 +172,13 @@ class SiparisUrun(Base):
     adet = Column(Integer)
     birim_fiyat = Column(Float)
     pv_degeri = Column(Integer)
+class BankaBilgisi(Base):
+    __tablename__ = "banka_bilgileri"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("kullanicilar.id"))
+    hesap_sahibi = Column(String(100))
+    banka_adi = Column(String(100))
+    iban = Column(String(34))
+    swift_kodu = Column(String(20), nullable=True)
+    guncelleme_tarihi = Column(DateTime(timezone=True), default=get_turkey_time, onupdate=get_turkey_time)

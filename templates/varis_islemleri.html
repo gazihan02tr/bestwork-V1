@@ -1,16 +1,24 @@
-{% extends "inc/base.html" %}
+{% extends "base.html" %}
 {% block title %}Varis İşlemleri{% endblock %}
 {% block content %}
-    {% include 'inc/backmenu.html' %}
-<section class="bg-[#faf4f2] px-4 py-10">
+<!-- Breadcrumb & Header -->
+<div class="bg-surface-container-low py-3 px-4 sm:px-6 lg:px-8 border-b border-outline-variant mb-6">
+    <div class="max-w-7xl mx-auto flex items-center text-sm text-on-surface-variant">
+        <a href="/" class="hover:text-primary font-medium">ANASAYFA</a>
+        <span class="mx-2 text-outline">/</span>
+        <span class="text-on-surface font-medium">Varis İşlemleri</span>
+    </div>
+</div>
+
+<section class="bg-background px-4 py-10">
     <div class="max-w-6xl mx-auto mt-1 space-y-6">
-        <div class="bg-white rounded-3xl shadow-2xl border border-outline-variant/40 overflow-hidden">
+        <div class="bg-surface rounded-3xl shadow-2xl border border-outline-variant/40 overflow-hidden">
             <div class="px-6 py-5 border-b border-outline-variant/40 flex flex-wrap items-center gap-4 justify-between">
                 <div>
                     <h2 class="text-lg font-semibold text-on-surface">Varis Bilgileri</h2>
                     <p class="text-sm text-on-surface-variant mt-1">Buradaki bilgiler mevcut varis kayıtlarını ve hızlı işlemleri gösterir.</p>
                 </div>
-                <button type="button" data-open-varis-modal class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary text-on-primary font-semibold text-sm hover:bg-primary/90 transition">
+                <button type="button" data-open-varis-modal class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition">
                     <span class="material-symbols-outlined text-base">person_add</span>
                     Varis Ekle
                 </button>
@@ -28,7 +36,7 @@
                             <th class="px-4 py-3 text-center">İşlem</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-outline-variant/40 bg-white">
+                    <tbody class="divide-y divide-outline-variant/40 bg-surface">
                         {% if varis_members %}
                         {% for varis in varis_members %}
                         <tr class="hover:bg-surface/70 transition">
@@ -145,7 +153,7 @@
 
 <div id="varis-modal-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] hidden"></div>
 <div id="varis-modal" class="fixed inset-0 flex items-center justify-center px-4 z-[201] hidden">
-    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-outline-variant/40 overflow-hidden">
+    <div class="w-full max-w-2xl bg-surface-container-high rounded-3xl shadow-2xl border border-outline-variant/40 overflow-hidden">
         <div class="px-6 py-4 border-b border-outline-variant/40 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-on-surface flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary">person_add</span>
@@ -189,7 +197,7 @@
             </div>
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" id="varis-modal-cancel" class="px-4 py-2 rounded-full border border-outline text-on-surface text-sm font-semibold hover:border-primary hover:text-primary transition">Kapat</button>
-                <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary text-sm font-semibold hover:elevation-2 transition">Kaydet</button>
+                <button type="submit" class="px-5 py-2 rounded-full bg-primary text-white text-sm font-semibold hover:elevation-2 transition">Kaydet</button>
             </div>
         </form>
     </div>

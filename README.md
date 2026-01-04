@@ -2,11 +2,45 @@
 
 ## Sürüm Geçmişi
 
-### v8.0 (04.01.2026) - Mimari Refactoring ve Güvenlik Güncellemesi
+### v8.0 (04.01.2026) - Mimari Refactoring, Güvenlik ve Kullanıcı Paneli Genişletmesi
 
-Bu sürümde sistemin altyapısı tamamen modernize edilmiş, güvenlik açıkları kapatılmış ve kod tabanı modüler hale getirilmiştir.
+Bu sürümde sistemin altyapısı tamamen modernize edilmiş, güvenlik açıkları kapatılmış, kod tabanı modüler hale getirilmiş ve kullanıcı paneli yeni sayfalarla zenginleştirilmiştir.
 
-#### 1. Mimari Değişiklikler (Refactoring)
+#### 1. Yeni Dashboard Sayfaları
+*   **Üyelik Bilgilerim (`/uyelik-bilgileri`):**
+    *   Kullanıcının tüm profil detaylarını (Kişisel bilgiler, İletişim, Üyelik durumu, Sponsor bilgisi) gösteren kart yapısında yeni sayfa eklendi.
+*   **Prim Detayları (`/prim-bilgileri`):**
+    *   Kullanıcının prim kazançlarını detaylı inceleyebileceği sayfa oluşturuldu.
+    *   Ay ve Yıl bazlı filtreleme altyapısı eklendi.
+*   **Hızlı Başlangıç Bonusu (`/hizli-baslangic`):**
+    *   Hızlı başlangıç bonuslarını listeleyen, paket ve tarih detaylı tablo sayfası eklendi.
+*   **Referans Bonusu (`/referans-bonusu`):**
+    *   Referans gelirlerinin listelendiği, arama ve tarih filtreli sayfa eklendi.
+
+#### 2. Navigasyon ve Arayüz (UI/UX) İyileştirmeleri
+*   **Breadcrumb (Ekmek Kırıntısı) Yapısı:**
+    *   Kullanıcı deneyimini artırmak için aşağıdaki sayfalara "Anasayfa / [Sayfa Adı]" şeklinde navigasyon çubuğu eklendi:
+        *   Varis İşlemleri
+        *   Banka Bilgileri
+        *   Şifre Değiştir
+        *   Kariyer Takibi
+        *   Üyelik Bilgilerim
+        *   Prim Detayları
+        *   Hızlı Başlangıç
+        *   Referans Bonusu
+*   **Menü Entegrasyonu:**
+    *   Üst menüdeki "Kişisel" ve "Bonuslar" dropdown menüleri yeni sayfalarla güncellendi.
+    *   User Control Bar (Panel içi menü) görünürlük kuralları yeni sayfaları kapsayacak şekilde genişletildi.
+*   **Görsel Düzenlemeler:**
+    *   Banka Bilgileri ve Varis İşlemleri formlarındaki butonların metin renkleri okunabilirlik için beyaza sabitlendi.
+
+#### 3. İş Mantığı ve Kısıtlamalar
+*   **Tek Banka Hesabı Kuralı:**
+    *   Kullanıcıların sisteme sadece **1 adet** banka hesabı ekleyebilmesi kuralı getirildi.
+    *   Mevcut hesap varken yeni ekleme butonu gizleniyor/engelleniyor.
+    *   Hesap silindiğinde tekrar ekleme hakkı açılıyor.
+
+#### 4. Mimari Değişiklikler (Refactoring)
 *   **Router Pattern'e Geçiş:** Monolitik `main.py` yapısı terk edildi. Uygulama mantığı modüllere ayrıldı:
     *   `app/routers/auth.py`: Kimlik doğrulama işlemleri.
     *   `app/routers/mlm.py`: Ağaç yapısı ve network marketing mantığı.
@@ -15,13 +49,13 @@ Bu sürümde sistemin altyapısı tamamen modernize edilmiş, güvenlik açıkla
     *   `app/routers/dashboard.py`: Kullanıcı paneli ve raporlar.
 *   **Bağımlılık Yönetimi:** Veritabanı ve template bağımlılıkları `app/dependencies.py` altında merkezileştirildi.
 
-#### 2. Güvenlik İyileştirmeleri
+#### 5. Güvenlik İyileştirmeleri
 *   **Şifre Hashleme:** Kullanıcı şifrelerinin veritabanında düz metin (plain text) olarak saklanması engellendi.
     *   `passlib` ve `bcrypt` kütüphaneleri entegre edildi.
     *   Kayıt ve şifre değiştirme işlemlerinde otomatik hashleme devreye alındı.
 *   **Güvenli Oturum:** Giriş işlemleri `app/utils.py` üzerindeki güvenli doğrulama fonksiyonlarına bağlandı.
 
-#### 3. Temizlik ve Düzenlemeler
+#### 6. Temizlik ve Düzenlemeler
 *   **Kod Temizliği:** `main.py` dosyası 900+ satırdan ~100 satıra düşürüldü.
 *   **Dosya Temizliği:** Kullanılmayan eski şablon dosyaları (`_old.html` uzantılı) sistemden kaldırıldı.
 *   **Sabitler:** Rütbe gereksinimleri gibi konfigürasyon verileri `app/utils.py` dosyasına taşındı.

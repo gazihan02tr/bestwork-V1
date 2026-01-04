@@ -33,13 +33,40 @@ def reset_database():
         sag_pv=0, # Anlık Eşleşme 0
         toplam_sol_pv=100000000,
         toplam_sag_pv=100000000,
-        toplam_cv=0.0
+        toplam_cv=0.0,
+        profil_resmi="/static/uploads/profiles/default_admin.webp" # Varsayılan admin resmi
     )
     db.add(admin)
     db.commit()
     db.refresh(admin)
     
     print(f"Yönetici oluşturuldu: {admin.email} / 123 (ID: {admin.uye_no})")
+
+    # Yönetici için Banka Bilgisi Ekle
+    admin_banka = models.BankaBilgisi(
+        user_id=admin.id,
+        hesap_sahibi="BestWork A.Ş.",
+        banka_adi="Ziraat Bankası",
+        iban="TR000000000000000000000000",
+        swift_kodu="TCZBATR2A"
+    )
+    db.add(admin_banka)
+    db.commit()
+    print("Yönetici banka bilgisi eklendi.")
+
+    # Yönetici için Varis Ekle
+    admin_varis = models.Varis(
+        kullanici_id=admin.id,
+        ad_soyad="Yedek Yönetici",
+        tc="11111111111",
+        telefon="5559998877",
+        email="yedek@bestwork.com",
+        yakinlik="Ortak",
+        adres="Şirket Merkezi"
+    )
+    db.add(admin_varis)
+    db.commit()
+    print("Yönetici varis bilgisi eklendi.")
     
     # Örnek Bekleyen Üyeler (Ağaca yerleşmemiş)
     bekleyen1 = models.Kullanici(

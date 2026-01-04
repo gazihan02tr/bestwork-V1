@@ -15,7 +15,7 @@
         <!-- Sidebar -->
         <aside class="w-full lg:w-64 flex-shrink-0 space-y-8">
             <!-- Quick Shop Button -->
-            <button class="w-full bg-[#FFC107] hover:bg-[#FFB300] text-black font-bold py-3 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
+            <button class="w-full bg-tertiary-container hover:bg-tertiary-container/80 text-on-tertiary-container font-bold py-3 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
                 Hızlı Alışveriş
             </button>
 
@@ -47,18 +47,18 @@
                     <!-- Badges -->
                     <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
                         {% if urun.indirimli_fiyat %}
-                        <span class="bg-primary text-white text-xs font-bold px-2 py-1 rounded">Popüler</span>
+                        <span class="bg-primary text-on-primary text-xs font-bold px-2 py-1 rounded">Popüler</span>
                         {% endif %}
                     </div>
                     <div class="absolute top-4 right-4 z-10 flex flex-col items-end gap-1">
-                        <span class="bg-black text-white text-xs font-bold px-2 py-1 rounded">#{{ '%03d' % urun.id }}</span>
-                        <div class="bg-black text-white text-xs font-bold px-2 py-1 rounded text-center">
+                        <span class="bg-inverse-surface text-inverse-on-surface text-xs font-bold px-2 py-1 rounded">#{{ '%03d' % urun.id }}</span>
+                        <div class="bg-inverse-surface text-inverse-on-surface text-xs font-bold px-2 py-1 rounded text-center">
                             {{ "%.3f"|format(urun.pv_degeri/1000) if urun.pv_degeri else '0.000' }} CC
                         </div>
                     </div>
 
                     <!-- Image -->
-                    <div class="aspect-square mb-4 overflow-hidden rounded-lg bg-white flex items-center justify-center p-4">
+                    <div class="aspect-square mb-4 overflow-hidden rounded-lg bg-surface-container-lowest flex items-center justify-center p-4">
                         <a href="/urun/{{ urun.id }}" class="w-full h-full flex items-center justify-center">
                             <img src="{{ urun.resim_url or 'https://via.placeholder.com/300' }}" alt="{{ urun.ad }}" class="object-contain max-w-full max-h-full group-hover:scale-105 transition-transform duration-300">
                         </a>
@@ -79,7 +79,7 @@
 
             <!-- Load More -->
             <div class="mt-12 flex justify-center">
-                <button class="bg-[#212121] text-white px-8 py-3 rounded hover:bg-black transition-colors font-medium">
+                <button class="bg-primary text-on-primary px-8 py-3 rounded hover:bg-primary/90 transition-colors font-medium">
                     Daha Fazla Yükle
                 </button>
             </div>

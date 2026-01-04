@@ -561,5 +561,6 @@ def get_dashboard_data(user_id: int, db: Session):
         "toplam_sol_ekip": sol_ekip,
         "toplam_sag_ekip": sag_ekip,
         "referans_sayisi": referanslar,
-        "bekleyen_sayisi": bekleyenler
+        "bekleyen_sayisi": bekleyenler,
+        "profil_resmi": getattr(kullanici, 'profil_resmi', None)
     }

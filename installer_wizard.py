@@ -569,16 +569,44 @@ async def run_installation():
                     parent_id=None,
                     kol=None,
                     uye_no="900000001",
+                    rutbe="Triple President",
                     kayit_tarihi=datetime.now(ZoneInfo("Europe/Istanbul")),
                     yerlestirme_tarihi=datetime.now(ZoneInfo("Europe/Istanbul")),
                     sol_pv=0,
-                    sag_pv=0
+                    sag_pv=0,
+                    toplam_sol_pv=100000000,
+                    toplam_sag_pv=100000000,
+                    toplam_cv=0.0
                 )
                 db.add(root)
                 db.commit()
                 db.refresh(root)
                 await log_message(f"✅ Kök Kullanıcı Oluşturuldu: {root.tam_ad}", "success")
                 await log_message(f"📧 Email: admin@bestwork.com | Şifre: 123456", "info")
+
+                # Admin Banka Bilgisi
+                root_banka = models.BankaBilgisi(
+                    user_id=root.id,
+                    hesap_sahibi="BestWork A.Ş.",
+                    banka_adi="Ziraat Bankası",
+                    iban="TR000000000000000000000000",
+                    swift_kodu="TCZBATR2A"
+                )
+                db.add(root_banka)
+                
+                # Admin Varis Bilgisi
+                root_varis = models.Varis(
+                    kullanici_id=root.id,
+                    ad_soyad="Yedek Yönetici",
+                    tc="11111111111",
+                    telefon="5559998877",
+                    email="yedek@bestwork.com",
+                    yakinlik="Ortak",
+                    adres="Şirket Merkezi"
+                )
+                db.add(root_varis)
+                db.commit()
+                await log_message("✅ Admin ek bilgileri (Banka, Varis) eklendi.", "success")
                 
                 # Bekleyen Üyeler (Örnek)
                 bekleyen1 = models.Kullanici(

@@ -1,81 +1,93 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kategoriler | Admin</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { margin:0; font-family:'Manrope',sans-serif; background:linear-gradient(145deg,rgba(88,28,135,0.08),rgba(79,70,229,0.08)); color:#1f1635; }
-        .page { max-width:1100px; margin:0 auto; padding:1.5rem 1.25rem 2.5rem; }
-        .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
-        .pill { background:rgba(124,58,237,0.12); color:#5b21b6; padding:0.35rem 0.8rem; border-radius:999px; font-weight:700; }
-        table { width:100%; border-collapse:collapse; background:#fff; border:1px solid rgba(124,58,237,0.12); border-radius:14px; overflow:hidden; box-shadow:0 12px 32px rgba(24,16,48,0.08); }
-        th, td { padding:0.9rem 1rem; text-align:left; border-bottom:1px solid rgba(124,58,237,0.08); }
-        th { background:rgba(124,58,237,0.06); color:#4c1d95; font-weight:800; }
-        tr:hover td { background:rgba(124,58,237,0.05); }
-        .actions { display:flex; gap:0.4rem; }
-        .btn { padding:0.5rem 0.8rem; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
-        .btn-primary { background:linear-gradient(120deg,#5b21b6,#7c3aed); color:#fff; box-shadow:0 10px 26px rgba(124,58,237,0.18); }
-        .btn-ghost { background:rgba(124,58,237,0.1); color:#4c1d95; }
-        form { margin:0; }
-        input[type="text"], textarea { width:100%; padding:0.7rem 0.8rem; border-radius:10px; border:1px solid rgba(124,58,237,0.2); font-family:inherit; }
-        .form-card { margin-top:1.2rem; background:#fff; border:1px solid rgba(124,58,237,0.12); border-radius:14px; padding:1.1rem 1.25rem; box-shadow:0 10px 30px rgba(24,16,48,0.08); }
-        label { font-weight:700; color:#4c1d95; }
-        .top-actions { display:flex; gap:0.75rem; align-items:center; }
-    </style>
-</head>
-<body>
-    <div class="page">
-        <div class="header">
-            <div>
-                <div class="pill">Admin</div>
-                <h1 style="margin:0.35rem 0 0;">Kategoriler</h1>
-                <p style="margin:0; color:#5f5b73;">Kategori listesini yönet.</p>
+{% extends "base.html" %}
+
+{% block title %}Kategoriler | Admin{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="bg-surface border-b border-outline-variant shadow-md3-1">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-md3-lg gradient-primary flex items-center justify-center">
+                    <span class="text-on-primary font-bold text-xl">BW</span>
+                </div>
+                <div>
+                    <div class="text-xs text-on-surface-variant">Admin Paneli</div>
+                    <div class="font-bold text-on-surface">BestWork</div>
+                </div>
             </div>
-            <div class="top-actions">
-                <a href="/admin/urunler" class="pill" style="text-decoration:none;">Ürünler</a>
-                <a href="/" class="pill" style="text-decoration:none;">Siteye dön</a>
+            <div class="flex items-center space-x-3">
+                <a href="/admin/urunler" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container rounded-md3-full transition">Ürünler</a>
+                <a href="/dashboard" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container rounded-md3-full transition">Dashboard</a>
+                <a href="/" class="px-4 py-2 text-sm font-semibold text-on-primary gradient-primary rounded-md3-full shadow-md3-2 hover:shadow-md3-3 transition">Siteye Dön</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <span class="inline-block px-4 py-1.5 bg-primary-container text-on-primary-container text-sm font-semibold rounded-md3-full mb-3">⚡ Admin Panel</span>
+                <h1 class="text-4xl font-extrabold text-on-surface mb-2">Kategoriler</h1>
+                <p class="text-lg text-on-surface-variant">Kategori listesini yönetin</p>
             </div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Ad</th>
-                    <th>Açıklama</th>
-                    <th>Oluşturulma</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for kategori in kategoriler %}
-                <tr>
-                    <td>{{ kategori.id }}</td>
-                    <td>{{ kategori.ad }}</td>
-                    <td>{{ kategori.aciklama }}</td>
-                    <td>{{ kategori.olusturulma_tarihi.strftime('%Y-%m-%d') if kategori.olusturulma_tarihi else '' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="bg-surface rounded-md3-2xl shadow-md3-3 overflow-hidden border border-outline-variant/20">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-outline-variant">
+                    <thead class="bg-surface-container-low">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface uppercase tracking-wider">Ad</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface uppercase tracking-wider">Açıklama</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface uppercase tracking-wider">Oluşturulma</th>
+                            <th class="px-6 py-4 text-right text-xs font-bold text-on-surface uppercase tracking-wider">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-surface divide-y divide-outline-variant">
+                        {% for kategori in kategoriler %}
+                        <tr class="hover:bg-surface-container transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-on-surface">#{{ kategori.id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-on-surface">{{ kategori.ad }}</td>
+                            <td class="px-6 py-4 text-sm text-on-surface-variant">{{ kategori.aciklama or '-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">{{ kategori.olusturulma_tarihi.strftime('%d.%m.%Y') if kategori.olusturulma_tarihi else '-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <form action="/admin/kategori-sil" method="post" class="inline-block" onsubmit="return confirm('Bu kategoriyi silmek istediğinize emin misiniz?');">
+                                    <input type="hidden" name="kategori_id" value="{{ kategori.id }}">
+                                    <button type="submit" class="text-error hover:text-error-container transition-colors font-bold">Sil</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        <div class="form-card">
-            <h3 style="margin-top:0; margin-bottom:0.6rem;">Yeni Kategori Ekle</h3>
+        <!-- Yeni Kategori Ekleme Formu -->
+        <div class="mt-8 bg-surface rounded-md3-2xl shadow-md3-3 p-8 border border-outline-variant/20">
+            <h3 class="text-2xl font-bold text-on-surface mb-6">Yeni Kategori Ekle</h3>
             <form action="/admin/kategoriler" method="post">
-                <div style="margin-bottom:0.75rem;">
-                    <label for="ad">Ad</label>
-                    <input type="text" id="ad" name="ad" required>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="ad" class="block text-sm font-bold text-on-surface mb-2">Kategori Adı *</label>
+                        <input type="text" id="ad" name="ad" required class="w-full px-4 py-3 border-2 border-outline rounded-md3-lg focus:border-primary focus:outline-none transition bg-surface text-on-surface">
+                    </div>
+                    <div>
+                        <label for="aciklama" class="block text-sm font-bold text-on-surface mb-2">Açıklama</label>
+                        <input type="text" id="aciklama" name="aciklama" class="w-full px-4 py-3 border-2 border-outline rounded-md3-lg focus:border-primary focus:outline-none transition bg-surface text-on-surface">
+                    </div>
                 </div>
-                <div style="margin-bottom:0.75rem;">
-                    <label for="aciklama">Açıklama</label>
-                    <textarea id="aciklama" name="aciklama" rows="3"></textarea>
+                <div class="mt-6 flex justify-end">
+                    <button type="submit" class="px-8 py-3 bg-primary text-on-primary font-bold rounded-md3-full shadow-md3-2 hover:shadow-md3-3 hover:bg-primary/90 transition transform hover:-translate-y-0.5">
+                        Kategori Oluştur
+                    </button>
                 </div>
-                <button type="submit" class="btn btn-primary">Kaydet</button>
             </form>
         </div>
     </div>
-</body>
-</html>
+</section>
+{% endblock %}

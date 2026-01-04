@@ -1,4 +1,8 @@
 from passlib.context import CryptContext
+from PIL import Image
+import io
+from pathlib import Path
+from fastapi import UploadFile
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -28,3 +32,22 @@ RUTBE_GEREKSINIMLERI = [
     {"ad": "President", "sol_pv": 5000000, "sag_pv": 5000000},
     {"ad": "Double President", "sol_pv": 10000000, "sag_pv": 10000000},
 ]
+
+def process_image_to_webp(file_content: bytes, destination_dir: Path, filename_prefix: str) -> str:
+    """
+    Yüklenen herhangi bir resmi WebP formatına çevirir ve kaydeder.
+    """
+    # Klasörü oluştur
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Resmi aç
+    image = Image.open(io.BytesIO(file_content))
+    
+    # Dosya ismini oluştur
+    new_filename = f"{filename_prefix}.webp"
+    file_path = destination_dir / new_filename
+    
+    # WebP olarak kaydet
+    image.save(file_path, "WEBP", quality=80, method=6)
+    
+    return new_filename

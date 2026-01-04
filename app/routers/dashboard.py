@@ -1,10 +1,43 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, Request, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from starlette.responses import RedirectResponse, HTMLResponse
+from starlette.responses import RedirectResponse, HTMLResponse, JSONResponse
 from app import models, crud, utils
 from app.dependencies import get_db, templates
+import os
+from pathlib import Path
 
 router = APIRouter()
+
+@router.get("/panel/sponsor-olduklarim", response_class=HTMLResponse)
+def sponsor_olduklarim_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    
+    user_id = request.state.user.id
+    uyeler = db.query(models.Kullanici).filter(models.Kullanici.referans_id == user_id).all()
+    
+    return templates.TemplateResponse("sponsored.html", {
+        "request": request,
+        "uyeler": uyeler,
+        "site_branding": {"site_name": "BestWork", "primary_color": "#7C3AED"}
+    })
+
+@router.get("/panel/bekleyenler", response_class=HTMLResponse)
+def bekleyenler_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=303)
+    
+    user_id = request.state.user.id
+    bekleyenler = db.query(models.Kullanici).filter(
+        models.Kullanici.referans_id == user_id,
+        models.Kullanici.parent_id == None
+    ).all()
+    
+    return templates.TemplateResponse("bekleyenler.html", {
+        "request": request,
+        "uyeler": bekleyenler,
+        "site_branding": {"site_name": "BestWork", "primary_color": "#7C3AED"}
+    })
 
 @router.get("/panel/{user_id}", response_class=HTMLResponse)
 def dashboard_sayfasi(request: Request, user_id: int, db: Session = Depends(get_db)):
@@ -40,23 +73,6 @@ def dashboard_sayfasi(request: Request, user_id: int, db: Session = Depends(get_
 @router.get("/api/dashboard/{user_id}")
 def api_dashboard_getir(user_id: int, db: Session = Depends(get_db)):
     return crud.get_dashboard_data(user_id, db)
-
-@router.get("/bekleyenler", response_class=HTMLResponse)
-def bekleyenler_sayfasi(request: Request, db: Session = Depends(get_db)):
-    if not request.state.user:
-        return RedirectResponse(url="/giris", status_code=303)
-    
-    user_id = request.state.user.id
-    bekleyenler = db.query(models.Kullanici).filter(
-        models.Kullanici.referans_id == user_id,
-        models.Kullanici.parent_id == None
-    ).all()
-    
-    return templates.TemplateResponse("bekleyenler.html", {
-        "request": request,
-        "uyeler": bekleyenler,
-        "site_branding": {"site_name": "BestWork", "primary_color": "#7C3AED"}
-    })
 
 @router.get("/career-tracking", response_class=HTMLResponse)
 def career_tracking_page(request: Request, db: Session = Depends(get_db)):
@@ -103,3 +119,42 @@ def career_tracking_page(request: Request, db: Session = Depends(get_db)):
         "site_branding": {"site_name": "BestWork", "primary_color": "#7C3AED"},
         "format_number": lambda x: "{:,}".format(int(x)).replace(",", ".")
     })
+
+@router.post("/api/upload-profile-image")
+async def upload_profile_image(
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    user = request.state.user
+    if not user:
+        raise HTTPException(status_code=401, detail="Oturum açmanız gerekiyor")
+    
+    # Klasör kontrolü
+    upload_dir = Path("static/uploads/profiles")
+    
+    # Dosya uzantısı kontrolü (Sadece resim olduğundan emin olmak için)
+    file_ext = os.path.splitext(file.filename)[1]
+    if file_ext.lower() not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff']:
+        raise HTTPException(status_code=400, detail="Sadece resim dosyaları yüklenebilir")
+        
+    # Dosyayı oku ve WebP'ye çevirip kaydet
+    try:
+        file_content = await file.read()
+        new_filename = utils.process_image_to_webp(
+            file_content, 
+            upload_dir, 
+            f"user_{user.id}"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Resim işlenirken hata oluştu: {str(e)}")
+        
+    # DB güncelle
+    relative_path = f"/static/uploads/profiles/{new_filename}"
+    
+    # Kullanıcıyı yeniden sorgula (session attach için)
+    db_user = db.query(models.Kullanici).filter(models.Kullanici.id == user.id).first()
+    db_user.profil_resmi = relative_path
+    db.commit()
+    
+    return JSONResponse({"success": True, "image_url": relative_path})

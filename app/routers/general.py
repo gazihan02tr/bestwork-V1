@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse, HTMLResponse
 from app import models, crud, schemas
 from app.dependencies import get_db, templates
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 router = APIRouter()
 
@@ -110,3 +112,152 @@ async def delete_varis(
         
     crud.varis_sil(db, entry_id, request.state.user.id)
     return RedirectResponse(url="/varis-islemleri", status_code=302)
+
+# --- BANKA BİLGİLERİ ---
+@router.get("/banka-bilgileri", response_class=HTMLResponse)
+async def banka_bilgileri_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=302)
+    
+    # Sadece tek bir banka hesabı getir
+    banka = db.query(models.BankaBilgisi).filter(models.BankaBilgisi.user_id == request.state.user.id).first()
+    return templates.TemplateResponse("banka_bilgileri.html", {"request": request, "banka": banka})
+
+@router.post("/banka-bilgileri/kaydet")
+async def banka_bilgisi_kaydet(
+    request: Request,
+    hesap_sahibi: str = Form(...),
+    banka_adi: str = Form(...),
+    iban: str = Form(...),
+    swift_kodu: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=302)
+    
+    # Mevcut kaydı kontrol et
+    banka = db.query(models.BankaBilgisi).filter(models.BankaBilgisi.user_id == request.state.user.id).first()
+    
+    if banka:
+        # Güncelle
+        banka.hesap_sahibi = hesap_sahibi
+        banka.banka_adi = banka_adi
+        banka.iban = iban
+        banka.swift_kodu = swift_kodu
+    else:
+        # Yeni oluştur
+        banka = models.BankaBilgisi(
+            user_id=request.state.user.id,
+            hesap_sahibi=hesap_sahibi,
+            banka_adi=banka_adi,
+            iban=iban,
+            swift_kodu=swift_kodu
+        )
+        db.add(banka)
+    
+    db.commit()
+    
+    return RedirectResponse(url="/banka-bilgileri", status_code=302)
+
+# --- ÜYELİK BİLGİLERİ ---
+@router.get("/uyelik-bilgileri", response_class=HTMLResponse)
+async def uyelik_bilgileri_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=302)
+    
+    user = request.state.user
+    
+    # Sponsor bilgisini getir
+    sponsor = None
+    if user.referans_id:
+        sponsor = db.query(models.Kullanici).filter(models.Kullanici.id == user.referans_id).first()
+    
+    # Kayıt gün farkını hesapla
+    gun_farki = 0
+    if user.kayit_tarihi:
+        simdi = datetime.now(ZoneInfo("Europe/Istanbul"))
+        fark = simdi - user.kayit_tarihi
+        gun_farki = fark.days
+        
+    return templates.TemplateResponse("uyelik_bilgileri.html", {
+        "request": request,
+        "user": user,
+        "sponsor": sponsor,
+        "gun_farki": gun_farki
+    })
+
+# --- PRİM BİLGİLERİ ---
+@router.get("/prim-bilgileri", response_class=HTMLResponse)
+async def prim_bilgileri_sayfasi(request: Request, month: int = None, year: int = None, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=302)
+    
+    if not month:
+        month = datetime.now().month
+    if not year:
+        year = datetime.now().year
+        
+    return templates.TemplateResponse("priminfo.html", {
+        "request": request,
+        "current_month": int(month),
+        "current_year": int(year)
+    })
+
+# --- HIZLI BAŞLANGIÇ BONUSU ---
+@router.get("/hizli-baslangic", response_class=HTMLResponse)
+async def hizli_baslangic_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=302)
+    
+    # Şimdilik boş veri gönderiyoruz, ileride gerçek verilerle doldurulacak
+    # Örnek veri yapısı:
+    # kayitlar = [
+    #     {
+    #         "uye_no": "TR87550847",
+    #         "ad_soyad": "EBUBEKİR ARSLAN",
+    #         "paket_adi": "STARTER",
+    #         "bonus": 60.00,
+    #         "tarih": datetime(2022, 1, 26),
+    #         "kazanc": 0.00
+    #     },
+    #     {
+    #         "uye_no": "TR76497419",
+    #         "ad_soyad": "Fahriye Burcu Arslan",
+    #         "paket_adi": "STARTER",
+    #         "bonus": 60.00,
+    #         "tarih": datetime(2022, 1, 27),
+    #         "kazanc": 60.00
+    #     }
+    # ]
+    
+    kayitlar = []
+    toplam_kazanc = sum(k["kazanc"] for k in kayitlar) if kayitlar else 0.0
+    
+    return templates.TemplateResponse("hizli_baslangic.html", {
+        "request": request,
+        "kayitlar": kayitlar,
+        "toplam_kazanc": toplam_kazanc
+    })
+
+# --- REFERANS BONUSU ---
+@router.get("/referans-bonusu", response_class=HTMLResponse)
+async def referans_bonusu_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=302)
+    
+    # Şimdilik boş veri gönderiyoruz
+    kayitlar = []
+    toplam_kazanc = sum(k["kazanc"] for k in kayitlar) if kayitlar else 0.0
+    
+    # Tarih filtreleri için varsayılan değerler
+    current_date = datetime.now()
+    current_month = current_date.month
+    current_year = current_date.year
+    
+    return templates.TemplateResponse("referans_bonusu.html", {
+        "request": request,
+        "kayitlar": kayitlar,
+        "toplam_kazanc": toplam_kazanc,
+        "current_month": current_month,
+        "current_year": current_year
+    })

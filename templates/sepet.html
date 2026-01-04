@@ -50,11 +50,11 @@
                                     <!-- Quantity Control -->
                                     <div class="flex items-center bg-surface-container-high rounded-full p-1">
                                         <form action="/api/sepet/{{ sepet.id }}/guncelle/{{ item.id }}" method="POST" class="contents">
-                                            <button type="submit" name="adet" value="{{ item.adet - 1 }}" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white text-on-surface-variant transition-colors">
+                                            <button type="submit" name="adet" value="{{ item.adet - 1 }}" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-bright text-on-surface-variant transition-colors">
                                                 <span class="material-symbols-outlined text-[18px]">remove</span>
                                             </button>
                                             <span class="w-8 text-center font-medium text-on-surface">{{ item.adet }}</span>
-                                            <button type="submit" name="adet" value="{{ item.adet + 1 }}" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white text-on-surface-variant transition-colors">
+                                            <button type="submit" name="adet" value="{{ item.adet + 1 }}" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-bright text-on-surface-variant transition-colors">
                                                 <span class="material-symbols-outlined text-[18px]">add</span>
                                             </button>
                                         </form>

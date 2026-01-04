@@ -3,13 +3,22 @@
 {% block title %}Siparişlerim{% endblock %}
 
 {% block content %}
+<!-- Breadcrumb & Header -->
+<div class="bg-surface-container-low py-3 px-4 sm:px-6 lg:px-8 border-b border-outline-variant mb-6">
+    <div class="max-w-7xl mx-auto flex items-center text-sm text-on-surface-variant">
+        <a href="/" class="hover:text-primary font-medium">ANASAYFA</a>
+        <span class="mx-2 text-outline">/</span>
+        <span class="text-on-surface font-medium">Siparişlerim</span>
+    </div>
+</div>
+
 <!-- Minimalist Header -->
 <header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-20">
             <!-- Logo -->
             <a href="/" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-md3-1 group-hover:shadow-md3-2 transition-all duration-300">
+                <div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-md3-1 group-hover:shadow-md3-2 transition-all duration-300">
                     <span class="material-symbols-outlined">diamond</span>
                 </div>
                 <span class="text-xl font-display font-bold text-on-surface tracking-tight">BestWork</span>
