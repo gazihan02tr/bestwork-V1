@@ -57,53 +57,11 @@
             --md-sys-color-surface-container-high: #E9E4EA;
             --md-sys-color-surface-container-highest: #E3DEE4;
         }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                /* Dark Mode Overrides */
-                --md-sys-color-primary: #D0BCFF;
-                --md-sys-color-on-primary: #381E72;
-                --md-sys-color-primary-container: #4F378B;
-                --md-sys-color-on-primary-container: #EADDFF;
-                
-                --md-sys-color-secondary: #CCC2DC;
-                --md-sys-color-on-secondary: #332D41;
-                --md-sys-color-secondary-container: #4A4458;
-                --md-sys-color-on-secondary-container: #E8DEF8;
-                
-                --md-sys-color-tertiary: #EFB8C8;
-                --md-sys-color-on-tertiary: #492532;
-                --md-sys-color-tertiary-container: #633B48;
-                --md-sys-color-on-tertiary-container: #FFD8E4;
-                
-                --md-sys-color-error: #F2B8B5;
-                --md-sys-color-on-error: #601410;
-                --md-sys-color-error-container: #8C1D18;
-                --md-sys-color-on-error-container: #F9DEDC;
-                
-                --md-sys-color-background: #141218;
-                --md-sys-color-on-background: #E6E1E5;
-                
-                --md-sys-color-surface: #141218;
-                --md-sys-color-on-surface: #E6E1E5;
-                --md-sys-color-surface-variant: #49454F;
-                --md-sys-color-on-surface-variant: #CAC4D0;
-                
-                --md-sys-color-outline: #938F99;
-                --md-sys-color-outline-variant: #49454F;
-                
-                --md-sys-color-surface-container-lowest: #0F0D13;
-                --md-sys-color-surface-container-low: #1D1B20;
-                --md-sys-color-surface-container: #211F26;
-                --md-sys-color-surface-container-high: #2B2930;
-                --md-sys-color-surface-container-highest: #36343B;
-            }
-        }
     </style>
 
     <script>
         tailwind.config = {
-            darkMode: 'media', // Automatically switch based on system preference
+            darkMode: 'class', // Manual switch to prevent auto dark mode
             theme: {
                 extend: {
                     colors: {
@@ -432,9 +390,15 @@
                 <div class="flex items-center gap-2">
                     {% if request.cookies.get("user_id") %}
                         <!-- Giriş Yapılmış Durum -->
-                        <a href="/panel/{{ request.cookies.get('user_id') }}" class="flex items-center p-1 pr-4 rounded-full bg-surface-container-highest/50 hover:bg-surface-container-highest transition-all duration-300 ease-out group">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-primary/10 transition-colors shrink-0">
-                                <span class="material-symbols-outlined">person</span>
+                        <a href="/panel/{{ request.cookies.get('user_id') }}" class="flex items-center p-1 pr-4 rounded-full bg-surface-container-highest shadow-sm border border-outline-variant/20 hover:bg-surface-container-high transition-all duration-300 ease-out group">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-primary bg-primary/10 transition-colors shrink-0 overflow-hidden border border-primary/10">
+                                {% if request.state.user.profil_resmi %}
+                                    <img src="{{ request.state.user.profil_resmi }}" alt="Profil" class="w-full h-full object-cover">
+                                {% else %}
+                                    <span class="font-bold text-sm select-none">
+                                        {{ request.state.user.tam_ad.split()[0][0] if request.state.user.tam_ad else '' }}{{ request.state.user.tam_ad.split()[-1][0] if request.state.user.tam_ad and request.state.user.tam_ad.split()|length > 1 else '' }}
+                                    </span>
+                                {% endif %}
                             </div>
                             <div class="flex flex-col justify-center whitespace-nowrap pl-2">
                                 <span class="text-[10px] font-medium text-on-surface-variant uppercase tracking-wider leading-none mb-0.5">{{ request.state.user.tam_ad if request.state.user else 'Kullanıcı' }}</span>
@@ -657,10 +621,10 @@
                         <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-md3-1">
                             <span class="material-symbols-outlined">diamond</span>
                         </div>
-                        <span class="text-xl font-display font-bold text-on-surface tracking-tight">BestWork</span>
+                        <span class="text-xl font-display font-bold text-on-surface tracking-tight">{{ request.state.site_ayarlar.footer_baslik if request.state.site_ayarlar else 'BestWork' }}</span>
                     </a>
                     <p class="text-on-surface-variant text-sm leading-relaxed">
-                        Premium alışveriş deneyimini yeniden tanımlıyoruz. Kalite, güven ve estetik bir arada.
+                        {{ request.state.site_ayarlar.footer_aciklama if request.state.site_ayarlar else 'Premium alışveriş deneyimini yeniden tanımlıyoruz. Kalite, güven ve estetik bir arada.' }}
                     </p>
                     <div class="flex gap-4">
                         <a href="#" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-[#0077b5] hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
@@ -714,7 +678,7 @@
             </div>
 
             <div class="border-t border-outline-variant/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-on-surface-variant">
-                <p>&copy; 2025 BestWork. Tüm hakları saklıdır.</p>
+                <p>{{ request.state.site_ayarlar.footer_copyright if request.state.site_ayarlar else '&copy; 2025 BestWork. Tüm hakları saklıdır.' }}</p>
                 <div class="flex gap-6">
                     <a href="#" class="hover:text-primary">Kullanım Koşulları</a>
                     <a href="#" class="hover:text-primary">Gizlilik</a>

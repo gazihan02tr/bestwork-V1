@@ -67,6 +67,15 @@ def reset_database():
     db.add(admin_varis)
     db.commit()
     print("Yönetici varis bilgisi eklendi.")
+
+    # BestSoft Admin Ekle
+    bestsoft_admin = models.Admin(
+        kullanici_adi="bestsoft",
+        sifre="123456"
+    )
+    db.add(bestsoft_admin)
+    db.commit()
+    print("BestSoft Yönetim Paneli Admin kullanıcı oluşturuldu: bestsoft / 123456")
     
     # Örnek Bekleyen Üyeler (Ağaca yerleşmemiş)
     bekleyen1 = models.Kullanici(
@@ -114,6 +123,20 @@ def reset_database():
     
     db.commit()
     print("Varsayılan ayarlar yüklendi.")
+
+    # Site Ayarları (Footer vb.)
+    site_ayarlari = models.SiteAyarlari(
+        site_basligi="BestWork",
+        min_cekime_limiti=500.0,
+        footer_baslik="BestWork",
+        footer_aciklama="Premium alışveriş deneyimini yeniden tanımlıyoruz. Kalite, güven ve estetik bir arada.",
+        footer_copyright="© 2025 BestWork. Tüm hakları saklıdır.",
+        iletisim_email="info@bestwork.com",
+        iletisim_telefon="+90 555 000 0000"
+    )
+    db.add(site_ayarlari)
+    db.commit()
+    print("Site genel ayarları oluşturuldu.")
 
     # Kategoriler ve Ürünler
     print("Örnek ürünler ve kategoriler ekleniyor...")

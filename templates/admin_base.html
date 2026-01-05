@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Yönetim Paneli | BestSoft{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F8FAFC; /* Slate 50 */
+        }
+        
+        /* Sidebar Glass Effect */
+        .sidebar {
+            background: #FFFFFF;
+            border-right: 1px solid #E2E8F0;
+        }
+
+        .nav-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #64748B;
+        }
+
+        .nav-item:hover {
+            background: #F1F5F9;
+            color: #7E22CE; /* Purple 700 */
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #9333EA 0%, #7E22CE 100%);
+            box-shadow: 0 4px 12px rgba(126, 34, 206, 0.25);
+            color: white !important;
+        }
+        
+        .nav-item.active .material-symbols-outlined {
+            color: white !important;
+        }
+
+        /* Topbar Glass */
+        .topbar {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        /* Content Card */
+        .card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1; 
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8; 
+        }
+        
+        input, select, textarea {
+            background: #FFFFFF !important;
+            border-color: #E2E8F0 !important;
+            color: #1E293B !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #9333EA !important;
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1) !important;
+            outline: none;
+        }
+        
+        /* Table Styling */
+        th {
+            background: #F8FAFC;
+            color: #64748B;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        td {
+            border-bottom: 1px solid #E2E8F0;
+            color: #334155;
+        }
+        tr:hover td {
+            background: #F8FAFC;
+        }
+    </style>
+</head>
+<body class="text-slate-600 h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="sidebar w-64 h-full flex flex-col fixed left-0 top-0 z-50 shadow-sm">
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-6 border-b border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center mr-3 shadow-lg shadow-purple-500/20">
+                <span class="material-symbols-outlined text-white text-[20px]">admin_panel_settings</span>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg tracking-tight text-slate-800">BestSoft</h1>
+                <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Yönetim Paneli</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+            <div class="px-2 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-2">Genel</div>
+            
+            <a href="/admin/kontrol" class="nav-item flex items-center gap-3 px-3 py-3 text-sm font-medium {% if request.url.path == '/admin/kontrol' %}active{% endif %}">
+                <span class="material-symbols-outlined text-slate-400 group-hover:text-purple-600 transition-colors">settings</span>
+                Ayarlar & Yapılandırma
+            </a>
+            
+            <a href="/admin/urunler" class="nav-item flex items-center gap-3 px-3 py-3 text-sm font-medium">
+                <span class="material-symbols-outlined text-slate-400 group-hover:text-purple-600 transition-colors">inventory_2</span>
+                Ürün Yönetimi
+            </a>
+
+            <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 text-sm font-medium">
+                <span class="material-symbols-outlined text-slate-400 group-hover:text-purple-600 transition-colors">group</span>
+                Üyeler
+            </a>
+
+            <div class="px-2 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6">Finans</div>
+
+            <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 text-sm font-medium">
+                <span class="material-symbols-outlined text-slate-400 group-hover:text-purple-600 transition-colors">payments</span>
+                Ödemeler
+            </a>
+            <a href="#" class="nav-item flex items-center gap-3 px-3 py-3 text-sm font-medium">
+                <span class="material-symbols-outlined text-slate-400 group-hover:text-purple-600 transition-colors">account_balance</span>
+                Banka Hareketleri
+            </a>
+
+            <div class="px-2 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6">Sistem</div>
+
+            <a href="/" target="_blank" class="nav-item flex items-center gap-3 px-3 py-3 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
+                <span class="material-symbols-outlined">open_in_new</span>
+                Siteyi Görüntüle
+            </a>
+        </nav>
+
+        <!-- User Profile -->
+        <div class="p-4 border-t border-slate-100">
+            <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-700">
+                    ADM
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-slate-700 truncate">Administrator</p>
+                    <p class="text-xs text-slate-500 truncate">Sistem Yöneticisi</p>
+                </div>
+                <a href="/bestsoft" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col ml-64 h-full relative">
+        
+        <!-- Topbar -->
+        <header class="topbar h-16 flex items-center justify-between px-6 sticky top-0 z-40">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-2 text-sm text-slate-500">
+                <span class="material-symbols-outlined text-[18px]">home</span>
+                <span>/</span>
+                <span class="text-slate-800 font-medium">{% block breadcrumb %}Dashboard{% endblock %}</span>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-4">
+                <button class="relative p-2 text-slate-400 hover:text-purple-600 transition-colors">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Srcoll Area -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 bg-slate-50">
+            <div class="max-w-7xl mx-auto">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+    </div>
+
+</body>
+</html>

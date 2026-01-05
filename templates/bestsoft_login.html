@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BestSoft Yönetim Paneli Girişi</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F8FAFC; /* Slate 50 */
+        }
+        
+        .glass-panel {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group input {
+            width: 100%;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            color: #1E293B;
+            padding: 12px 16px 12px 48px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #9333EA; /* Purple 600 */
+            box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.1);
+            background: #FFFFFF;
+        }
+        
+        .input-group span {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94A3B8; /* Slate 400 */
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+        
+        .input-group input:focus + span {
+            color: #9333EA;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #9333EA 0%, #7E22CE 100%);
+            color: white;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 12px;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(126, 34, 206, 0.2), 0 2px 4px -1px rgba(126, 34, 206, 0.1);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(126, 34, 206, 0.3);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .ambient-light {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .light-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: #E9D5FF; /* Purple 200 */
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: #FBCFE8; /* Pink 200 */
+        }
+    </style>
+</head>
+<body class="h-screen flex items-center justify-center relative overflow-hidden text-slate-800">
+
+    <!-- Ambient Background -->
+    <div class="ambient-light">
+        <div class="light-blob blob-1"></div>
+        <div class="light-blob blob-2"></div>
+    </div>
+
+    <!-- Login Container -->
+    <div class="w-full max-w-md p-6">
+        
+        <div class="glass-panel p-8 rounded-2xl relative overflow-hidden">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl mx-auto flex items-center justify-center shadow-lg shadow-purple-500/30 mb-4">
+                    <span class="material-symbols-outlined text-white text-3xl">admin_panel_settings</span>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900 mb-2 tracking-tight">BestSoft</h1>
+                <p class="text-slate-500 text-sm">Yönetim Paneli Girişi</p>
+            </div>
+
+            {% if error %}
+            <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm text-center mb-4">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form action="/bestsoft/login" method="POST" class="space-y-5">
+                
+                <div class="input-group">
+                    <input type="text" name="username" placeholder="Yönetici Kullanıcı Adı" required autocomplete="off">
+                    <span class="material-symbols-outlined text-[20px]">person</span>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="Güvenlik Şifresi" required>
+                    <span class="material-symbols-outlined text-[20px]">lock</span>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+                    <label class="flex items-center gap-2 cursor-pointer hover:text-purple-600 transition-colors">
+                        <input type="checkbox" class="rounded bg-slate-100 border-slate-300 text-purple-600 focus:ring-0 w-4 h-4">
+                        <span>Beni hatırla</span>
+                    </label>
+                    <a href="#" class="hover:text-purple-700 transition-colors">Şifremi unuttum?</a>
+                </div>
+
+                <button type="submit" class="btn-primary flex items-center justify-center gap-2">
+                    <span>Giriş Yap</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+            </form>
+
+            <!-- Footer -->
+            <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
+                    BestSoft Teknoloji A.Ş. &copy; 2026
+                </p>
+            </div>
+            
+            <!-- Decor Line -->
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500"></div>
+        </div>
+        
+    </div>
+
+</body>
+</html>

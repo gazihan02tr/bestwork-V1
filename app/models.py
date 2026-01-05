@@ -94,6 +94,23 @@ class NesilAyari(Base):
     nesil_no = Column(Integer)  # 1, 2, 3...
     oran = Column(Float)        # 0.10, 0.05...
 
+class SiteAyarlari(Base):
+    __tablename__ = "site_ayarlari"
+
+    id = Column(Integer, primary_key=True, index=True)
+    site_basligi = Column(String(255), default="BestWork")
+    min_cekime_limiti = Column(Float, default=500.0)
+    
+    # Footer Ayarları
+    footer_baslik = Column(String, default="BestWork")
+    footer_aciklama = Column(Text, default="Premium alışveriş deneyimini yeniden tanımlıyoruz. Kalite, güven ve estetik bir arada.")
+    footer_copyright = Column(String, default="© 2025 BestWork. Tüm hakları saklıdır.")
+    
+    # İletişim vs
+    iletisim_adres = Column(Text, nullable=True)
+    iletisim_email = Column(String, nullable=True)
+    iletisim_telefon = Column(String, nullable=True)
+
 class Varis(Base):
     __tablename__ = "varisler"
 
@@ -182,3 +199,11 @@ class BankaBilgisi(Base):
     iban = Column(String(34))
     swift_kodu = Column(String(20), nullable=True)
     guncelleme_tarihi = Column(DateTime(timezone=True), default=get_turkey_time, onupdate=get_turkey_time)
+
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id = Column(Integer, primary_key=True, index=True)
+    kullanici_adi = Column(String, unique=True, index=True)
+    sifre = Column(String)
+    olusturma_tarihi = Column(DateTime(timezone=True), default=get_turkey_time)

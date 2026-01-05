@@ -6,28 +6,78 @@ from app.dependencies import get_db, templates
 
 router = APIRouter()
 
+# --- BESTSOFT ADMIN GİRİŞ ---
+@router.get("/bestsoft", response_class=HTMLResponse)
+async def bestsoft_login_page(request: Request):
+    return templates.TemplateResponse("bestsoft_login.html", {"request": request})
+
+@router.post("/bestsoft/login")
+async def bestsoft_login_action(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    admin = db.query(models.Admin).filter(models.Admin.kullanici_adi == username).first()
+    if not admin or admin.sifre != password:
+        return templates.TemplateResponse("bestsoft_login.html", {"request": request, "error": "Geçersiz Kullanıcı Adı veya Şifre"})
+    
+    response = RedirectResponse(url="/admin/kontrol", status_code=303)
+    response.set_cookie(key="admin_user", value=username)
+    return response
+
+
 # ADMIN KONTROL SAYFASI
 @router.get("/admin/kontrol", response_class=HTMLResponse)
 def admin_ayar_sayfasi(request: Request, db: Session = Depends(get_db)):
-    # Admin kontrolü yapılmalı (şimdilik basit kontrol)
-    # if not request.state.user or not request.state.user.is_admin:
-    #     return RedirectResponse(url="/giris", status_code=303)
+    admin_user = request.cookies.get("admin_user")
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
     
-    nesiller = db.query(models.Nesil).order_by(models.Nesil.derinlik).all()
+    nesiller = db.query(models.NesilAyari).order_by(models.NesilAyari.nesil_no).all()
+    # Key-Value Ayarlar (eskiden kalma)
+    kv_ayarlar = db.query(models.Ayarlar).all()
+    # Yeni Site Ayarları (Footer vs)
     site_ayarlari = db.query(models.SiteAyarlari).first()
+    if not site_ayarlari:
+        site_ayarlari = models.SiteAyarlari()
+        db.add(site_ayarlari)
+        db.commit()
     
     return templates.TemplateResponse("admin_ayarlar.html", {
         "request": request,
         "nesiller": nesiller,
-        "ayarlar": site_ayarlari
+        "toplam_nesil": len(nesiller),
+        "ayarlar": kv_ayarlar,
+        "site_ayarlar": site_ayarlari
     })
 
 # --- ADMIN İŞLEMLERİ ---
-@router.post("/admin/ayarlar/guncelle")
-def admin_ayarlari_guncelle(
-    request: Request,
-    site_name: str = Form(...),
+
+# 1. Key-Value Ayarları Güncelle (Tek tek)
+@router.post("/admin/kv-ayarlar/guncelle")
+def admin_kv_ayar_guncelle(
+    anahtar: str = Form(...),
+    deger: float = Form(...),
+    db: Session = Depends(get_db)
+):
+    print(f"DEBUG: KV Update -> {anahtar} = {deger}")
+    ayar = db.query(models.Ayarlar).filter(models.Ayarlar.anahtar == anahtar).first()
+    if ayar:
+        ayar.deger = deger
+        db.commit()
+    return RedirectResponse(url="/admin/kontrol", status_code=303)
+
+# 2. Genel Site Ayarları Güncelle (Toplu)
+@router.post("/admin/site-ayarlari/guncelle")
+def admin_site_ayarlari_guncelle(
+    site_basligi: str = Form(...),
     min_cekime_limiti: float = Form(...),
+    footer_baslik: str = Form(None),
+    footer_aciklama: str = Form(None),
+    footer_copyright: str = Form(None),
+    iletisim_email: str = Form(None),
+    iletisim_telefon: str = Form(None),
     db: Session = Depends(get_db)
 ):
     ayarlar = db.query(models.SiteAyarlari).first()
@@ -35,8 +85,14 @@ def admin_ayarlari_guncelle(
         ayarlar = models.SiteAyarlari()
         db.add(ayarlar)
     
-    ayarlar.site_basligi = site_name
+    ayarlar.site_basligi = site_basligi
     ayarlar.min_cekime_limiti = min_cekime_limiti
+    ayarlar.footer_baslik = footer_baslik
+    ayarlar.footer_aciklama = footer_aciklama
+    ayarlar.footer_copyright = footer_copyright
+    ayarlar.iletisim_email = iletisim_email
+    ayarlar.iletisim_telefon = iletisim_telefon
+    
     db.commit()
     
     return RedirectResponse(url="/admin/kontrol", status_code=303)

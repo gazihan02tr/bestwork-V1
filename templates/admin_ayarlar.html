@@ -1,148 +1,210 @@
-{% extends "base.html" %}
+{% extends "admin_base.html" %}
 
-{% block title %}Sistem Yönetimi | Admin{% endblock %}
+{% block title %}Ayarlar | BestSoft Admin{% endblock %}
+{% block breadcrumb %}Ayarlar ve Yapılandırma{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<header class="bg-surface border-b border-outline-variant shadow-md3-1">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-md3-lg gradient-primary flex items-center justify-center">
-                    <span class="text-on-primary font-bold text-xl">BW</span>
-                </div>
-                <div>
-                    <div class="text-xs text-on-surface-variant">Admin Paneli</div>
-                    <div class="font-bold text-on-surface">BestWork</div>
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <a href="/admin/urunler" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container rounded-md3-full transition">Ürünler</a>
-                <a href="/dashboard" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container rounded-md3-full transition">Dashboard</a>
-                <a href="/" class="px-4 py-2 text-sm font-semibold text-on-primary gradient-primary rounded-md3-full shadow-md3-2 hover:shadow-md3-3 transition">Siteye Dön</a>
-            </div>
+<div class="space-y-6">
+    
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-1">Sistem Ayarları</h2>
+            <p class="text-slate-500">Genel yapılandırma ve network parametreleri.</p>
         </div>
+        <button class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">save</span>
+            <span>Tümünü Kaydet</span>
+        </button>
     </div>
-</header>
 
-<section class="py-12">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <span class="inline-block px-4 py-1.5 bg-primary-container text-on-primary-container text-sm font-semibold rounded-md3-full mb-3">⚙️ Sistem Kontrol Paneli</span>
-                <h1 class="text-4xl font-extrabold text-on-surface mb-2">Ayarlar</h1>
-                <p class="text-lg text-on-surface-variant">Network pazarlama parametrelerini ve nesil kazançlarını yönetin.</p>
-            </div>
-        </div>
-
-        <!-- Genel Parametreler -->
-        <div class="mb-12">
-            <h3 class="text-2xl font-bold text-on-surface mb-6">Genel Parametreler</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {% for ayar in ayarlar %}
-                <div class="bg-surface rounded-md3-xl p-6 shadow-md3-2 border-l-4 border-primary hover:-translate-y-1 transition-transform duration-300">
-                    <form action="/admin/ayarlar/guncelle" method="post">
-                        <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">{{ ayar.anahtar.replace('_', ' ') }}</label>
-                        <div class="flex gap-2">
-                            <input type="hidden" name="anahtar" value="{{ ayar.anahtar }}">
-                            <input type="number" step="0.01" name="deger" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded-md3-lg font-bold text-on-surface focus:border-primary focus:outline-none transition" value="{{ ayar.deger }}">
-                            <button class="p-2 bg-primary text-on-primary rounded-md3-lg hover:bg-primary/90 transition shadow-md3-1" type="submit">
-                                <span class="material-symbols-outlined text-[20px]">check</span>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Nesil Kazançları -->
-        <div class="bg-surface rounded-md3-2xl shadow-md3-3 overflow-hidden border border-outline-variant/20 mb-12">
-            <div class="p-6 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-low">
-                <h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
-                    <span class="material-symbols-outlined">groups</span>
-                    Dinamik Nesil (Matching) Derinliği
-                </h3>
-                <span class="px-3 py-1 bg-surface-container-high text-on-surface font-bold rounded-md3-full text-sm">Aktif Derinlik: {{ toplam_nesil }} Seviye</span>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-outline-variant">
-                    <thead class="bg-surface-container-low">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface uppercase tracking-wider">Nesil No</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface uppercase tracking-wider">Kazanç Oranı (%)</th>
-                            <th class="px-6 py-4 text-left text-xs font-bold text-on-surface uppercase tracking-wider">Durum</th>
-                            <th class="px-6 py-4 text-right text-xs font-bold text-on-surface uppercase tracking-wider">İşlem</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-surface divide-y divide-outline-variant">
-                        {% for n in nesiller %}
-                        <tr class="hover:bg-surface-container transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-md3-full text-sm font-bold">{{ n.nesil_no }}. Nesil</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap align-middle">
-                                <div class="w-full bg-surface-container-highest rounded-full h-2.5 mb-1">
-                                    <div class="bg-tertiary h-2.5 rounded-full" style="width: {{ n.oran * 100 }}%"></div>
-                                </div>
-                                <span class="text-sm font-bold text-on-surface">%{{ (n.oran * 100) | int }}</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="flex items-center gap-1 text-tertiary font-bold text-sm">
-                                    <span class="w-2 h-2 rounded-full bg-tertiary"></span>
-                                    Aktif Ödeniyor
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <a href="/admin/nesil/sil/{{ n.id }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-error hover:bg-error-container hover:text-on-error-container rounded-md3-lg transition-colors text-sm font-bold">
-                                    <span class="material-symbols-outlined text-[18px]">delete</span>
-                                    Kaldır
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Yeni Nesil Ekleme -->
-        <div class="bg-surface-container-low rounded-md3-2xl p-8 border border-dashed border-outline-variant mb-12">
-            <h5 class="text-xl font-bold text-on-surface mb-6">Yeni Derinlik Seviyesi Ekle</h5>
-            <form action="/admin/nesil/ekle" method="post">
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div>
-                        <label class="block text-sm font-bold text-on-surface mb-2">Nesil No</label>
-                        <input type="number" name="nesil_no" class="w-full px-4 py-3 border-2 border-outline rounded-md3-lg focus:border-primary focus:outline-none transition bg-surface text-on-surface" placeholder="Örn: 4" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-on-surface mb-2">Oran (0.01-1)</label>
-                        <input type="number" step="0.01" name="oran" class="w-full px-4 py-3 border-2 border-outline rounded-md3-lg focus:border-primary focus:outline-none transition bg-surface text-on-surface" placeholder="Örn: 0.05" required>
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit" class="w-full px-6 py-3 bg-primary text-on-primary font-bold rounded-md3-full shadow-md3-2 hover:shadow-md3-3 hover:bg-primary/90 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                            <span class="material-symbols-outlined">add_circle</span>
-                            Sisteme Ekle
+    <!-- 1. Sistem Katsayıları (Key-Value) -->
+    <div class="card p-6">
+        <h3 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-purple-600">calculate</span>
+            Sistem Katsayıları
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for ayar in ayarlar %}
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 hover:border-purple-300 transition-colors">
+                <form action="/admin/kv-ayarlar/guncelle" method="post">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">{{ ayar.anahtar.replace('_', ' ') }}</label>
+                    <div class="flex gap-2">
+                        <input type="hidden" name="anahtar" value="{{ ayar.anahtar }}">
+                        <input type="number" step="0.01" name="deger" class="w-full px-3 py-2 rounded-lg text-sm font-bold bg-white border border-slate-300 text-slate-700" value="{{ ayar.deger }}">
+                        <button class="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center justify-center" type="submit">
+                            <span class="material-symbols-outlined text-[18px]">check</span>
                         </button>
                     </div>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 2. Site ve Footer Yönetimi -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Sol: Footer ve Site Bilgileri -->
+        <div class="lg:col-span-2 card p-6">
+            <h3 class="text-lg font-semibold text-slate-800 mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-pink-500">web</span>
+                Site ve Footer Yönetimi
+            </h3>
+            
+            <form action="/admin/site-ayarlari/guncelle" method="post" class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Site Başlığı -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Site Başlığı</label>
+                        <input type="text" name="site_basligi" value="{{ site_ayarlar.site_basligi }}" class="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-300 text-slate-800 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 placeholder-slate-400 transition-all outline-none font-medium" required>
+                    </div>
+
+                    <!-- Min Çekim -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Min. Çekim Limiti</label>
+                        <input type="number" step="0.01" name="min_cekime_limiti" value="{{ site_ayarlar.min_cekime_limiti }}" class="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-300 text-slate-800 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 placeholder-slate-400 transition-all outline-none font-medium" required>
+                    </div>
+                </div>
+
+                <!-- Footer Başlık & Copyright -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Footer Marka Adı</label>
+                        <input type="text" name="footer_baslik" value="{{ site_ayarlar.footer_baslik }}" class="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-300 text-slate-800 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 placeholder-slate-400 transition-all outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Footer Copyright</label>
+                        <input type="text" name="footer_copyright" value="{{ site_ayarlar.footer_copyright }}" class="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-300 text-slate-800 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 placeholder-slate-400 transition-all outline-none">
+                    </div>
+                </div>
+
+                <!-- Footer Açıklama -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Footer Açıklama Metni</label>
+                    <textarea name="footer_aciklama" rows="3" class="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-300 text-slate-800 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 placeholder-slate-400 transition-all outline-none">{{ site_ayarlar.footer_aciklama }}</textarea>
+                </div>
+
+                <!-- İletişim -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">İletişim Email</label>
+                        <div class="relative">
+                            <input type="text" name="iletisim_email" value="{{ site_ayarlar.iletisim_email }}" class="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-300 text-slate-800 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 placeholder-slate-400 transition-all outline-none pl-10">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]">mail</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">İletişim Telefon</label>
+                        <div class="relative">
+                            <input type="text" name="iletisim_telefon" value="{{ site_ayarlar.iletisim_telefon }}" class="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 border border-slate-300 text-slate-800 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 placeholder-slate-400 transition-all outline-none pl-10">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]">call</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end">
+                    <button type="submit" class="px-6 py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition shadow-md hover:shadow-lg flex items-center gap-2 text-sm">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        Ayarları Kaydet
+                    </button>
                 </div>
             </form>
-            <p class="text-sm text-on-surface-variant mt-4">NOT: Aynı nesil numarasını girerseniz mevcut oran güncellenir.</p>
         </div>
 
-        <!-- Kısa Kol Oranı (Manuel Ekleme) -->
-        <div class="bg-surface rounded-md3-xl p-6 shadow-md3-2 border border-outline-variant/20">
-            <form action="/admin/ayarlar/guncelle" method="post" class="flex flex-wrap gap-4 items-center">
-                <label class="font-bold text-on-surface">Kısa Kol Ödeme Oranı (%):</label>
-                <input type="hidden" name="anahtar" value="kisa_kol_oran">
-                <input type="number" step="0.01" name="deger" value="0.13" class="w-24 px-3 py-2 bg-surface-container border border-outline-variant rounded-md3-lg font-bold text-on-surface focus:border-primary focus:outline-none transition">
-                <button type="submit" class="px-4 py-2 bg-primary text-on-primary font-bold rounded-md3-lg hover:bg-primary/90 transition shadow-md3-1">
-                    Güncelle
+        <!-- Sağ: Kısa Kol Oranı -->
+        <div class="card p-6 h-fit">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Ekstra Ayarlar</h3>
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <form action="/admin/ayarlar/guncelle" method="post">
+                    <label class="block text-sm font-semibold text-slate-700 mb-3">Kısa Kol Primi (%)</label>
+                    <input type="hidden" name="anahtar" value="kisa_kol_oran">
+                    <div class="flex gap-2">
+                        <input type="number" step="0.01" name="deger" value="0.13" class="w-full px-3 py-2 rounded-lg text-sm font-bold bg-white border border-slate-300 text-slate-800 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none transition-all">
+                        <button type="submit" class="px-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition shadow-sm font-medium">
+                            Güncelle
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">* Örneğin %13 için 0.13 giriniz.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 3. Nesil (Matching) Yönetimi -->
+    <div class="card overflow-hidden">
+        <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-orange-500">groups</span>
+                    Dinamik Nesil (Matching) Derinliği
+                </h3>
+                <p class="text-sm text-slate-500 mt-1">Network ağacındaki derinlik kazanç oranlarını yönetin.</p>
+            </div>
+            <span class="px-3 py-1 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">Aktif Derinlik: {{ toplam_nesil }} Seviye</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
+                    <tr>
+                        <th class="px-6 py-4 border-b border-slate-200">Nesil No</th>
+                        <th class="px-6 py-4 border-b border-slate-200">Kazanç Oranı (%)</th>
+                        <th class="px-6 py-4 border-b border-slate-200">Durum</th>
+                        <th class="px-6 py-4 border-b border-slate-200 text-right">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    {% for n in nesiller %}
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded">{{ n.nesil_no }}. Nesil</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-orange-500 h-1.5 rounded-full" style="width: {{ n.oran * 100 }}%"></div>
+                                </div>
+                                <span class="text-sm font-bold text-orange-600">%{{ (n.oran * 100) | int }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Aktif
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="/admin/nesil/sil/{{ n.id }}" class="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg inline-flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Yeni Nesil Ekle -->
+        <div class="p-6 bg-slate-50 border-t border-slate-200">
+            <h5 class="text-sm font-bold text-slate-800 mb-4">Yeni Derinlik Seviyesi Ekle</h5>
+            <form action="/admin/nesil/ekle" method="post" class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Nesil No</label>
+                    <input type="number" name="nesil_no" class="w-full px-4 py-2.5 rounded-lg text-sm bg-white border border-slate-300 text-slate-700 focus:border-purple-500 focus:ring-purple-500" placeholder="Örn: 4" required>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-slate-500 mb-1.5">Oran (0.01-1)</label>
+                    <input type="number" step="0.01" name="oran" class="w-full px-4 py-2.5 rounded-lg text-sm bg-white border border-slate-300 text-slate-700 focus:border-purple-500 focus:ring-purple-500" placeholder="Örn: 0.05" required>
+                </div>
+                <button type="submit" class="w-full md:w-auto px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition flex items-center justify-center gap-2 text-sm shadow-md hover:shadow-lg">
+                    <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    Sisteme Ekle
                 </button>
-                <span class="text-xs text-on-surface-variant ml-2">* Örn: %13 için 0.13 yazınız.</span>
             </form>
         </div>
     </div>
-</section>
+
+</div>
 {% endblock %}

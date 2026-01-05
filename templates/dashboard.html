@@ -51,12 +51,22 @@
                 {% endif %}
 
                 <div class="relative w-36 h-36 mx-auto group">
-                    <div class="w-full h-full rounded-full overflow-hidden shadow-md3-3 bg-surface/10 border border-outline-variant relative">
-                        <img id="profileImage" src="{{ ozet.profil_resmi if ozet.profil_resmi else 'https://ui-avatars.com/api/?name=' ~ ozet.tam_ad ~ '&background=random' }}" alt="Profil" class="w-full h-full object-cover">
+                    <div class="w-full h-full rounded-full overflow-hidden shadow-md3-3 bg-surface/10 border border-outline-variant relative flex items-center justify-center">
+                        <img id="profileImage" 
+                             src="{{ ozet.profil_resmi if ozet.profil_resmi else '' }}" 
+                             alt="Profil" 
+                             class="w-full h-full object-cover {{ 'hidden' if not ozet.profil_resmi else '' }}"
+                             onerror="this.style.display='none'; document.getElementById('profileInitials').classList.remove('hidden');"
+                        >
+                        
+                        <div id="profileInitials" 
+                             class="w-full h-full flex items-center justify-center bg-surface-container-highest text-primary text-4xl font-bold select-none {{ 'hidden' if ozet.profil_resmi else '' }}">
+                            {{ ozet.tam_ad.split()[0][0] if ozet.tam_ad else '' }}{{ ozet.tam_ad.split()[-1][0] if ozet.tam_ad and ozet.tam_ad.split()|length > 1 else '' }}
+                        </div>
                         
                         <!-- Upload Overlay -->
-                        <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onclick="document.getElementById('profileUploadInput').click()">
-                            <span class="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                        <div class="absolute inset-0 bg-black/40 hover:bg-black/60 flex items-center justify-center transition-colors cursor-pointer z-10" onclick="document.getElementById('profileUploadInput').click()">
+                            <span class="material-symbols-outlined text-white/90 text-3xl">photo_camera</span>
                         </div>
                     </div>
                     <input type="file" id="profileUploadInput" class="hidden" accept="image/*" onchange="uploadProfileImage(this)">
@@ -140,7 +150,8 @@
                             'value': (ozet.mevcut_sol_pv | format_large_number) ~ ' / ' ~ (ozet.mevcut_sag_pv | format_large_number),
                             'icon': 'scale',
                             'color': 'from-orange-500 to-orange-600',
-                            'subtitle': 'Sol / Sağ CV'
+                            'subtitle': 'Sol / Sağ CV',
+                            'link': '/anlik-eslesme'
                         },
                         {
                             'title': 'TOPLAM KAZANÇ',
@@ -148,7 +159,7 @@
                             'icon': 'attach_money',
                             'color': 'from-emerald-600 to-emerald-500',
                             'subtitle': None,
-                            'link': '/prim-info'
+                            'link': '/prim-bilgileri'
                         },
                         {
                             'title': 'YERLEŞİM BEKLEYEN',
@@ -164,7 +175,7 @@
                             'icon': 'payments',
                             'color': 'from-green-600 to-green-500',
                             'subtitle': None,
-                            'link': '/prim-info'
+                            'link': '/prim-bilgileri'
                         }
                     ] %}
 
@@ -254,6 +265,12 @@ async function uploadProfileImage(input) {
                 if (data.success) {
                     // Cache busting için timestamp ekle
                     imgElement.src = data.image_url + '?t=' + new Date().getTime();
+                    // Resmi göster, baş harfleri gizle
+                    imgElement.classList.remove('hidden');
+                    const initialsDiv = document.getElementById('profileInitials');
+                    if (initialsDiv) {
+                        initialsDiv.classList.add('hidden');
+                    }
                 } else {
                     alert('Resim yüklenirken bir hata oluştu.');
                     imgElement.src = originalSrc;

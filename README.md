@@ -2,6 +2,39 @@
 
 ## Sürüm Geçmişi
 
+### v9.0 (06.01.2026) - BestSoft Kurumsal Admin Arayüzü, Dinamik Footer ve UI Modernizasyonu
+
+Bu sürümde yönetim paneli (Admin Panel), kullanıcı arayüzünden tamamen ayrılarak **"BestSoft"** markası altında yeniden tasarlandı. Kurumsal kimliğe uygun modern bir "Light Mode" teması uygulandı ve site genelinde dinamik içerik yönetimi sağlandı.
+
+#### 1. Yeni "BestSoft" Admin Arayüzü (`/admin`, `/bestsoft`)
+*   **İzole Tasarım:** Yönetim paneli, ana site tasarımından tamamen ayrıştırıldı (Decoupled UI). Kendi özel CSS ve JS yapılandırmasına sahip.
+*   **Light Mode & Kurumsal Renkler:**
+    *   Önceki koyu tema (Dark Mode) yerine, kurumsal **Mor (#9333EA)** ve **İndigo (#4338ca)** renklerinin ağırlıkta olduğu ferah bir **Beyaz/Slate** tema sistemi geliştirildi.
+    *   Arka planlar `bg-slate-50`, kartlar `bg-white` olarak güncellendi.
+*   **Yenilenen Giriş Sayfası (`/bestsoft`):**
+    *   Modern, "Glassmorphism" efektli, beyaz zemin üzerine mor ambiyans ışıklı yeni login sayfası tasarlandı.
+    *   Giriş güvenliği ve kullanıcı deneyimi (UX) iyileştirildi.
+
+#### 2. Dinamik İçerik Yönetimi (Site Ayarları)
+*   **Dinamik Footer Yapısı:**
+    *   Admin panelinden yönetilebilen bir Footer (Alt Bilgi) altyapısı kuruldu.
+    *   **Yönetilebilir Alanlar:**
+        *   Marka Adı
+        *   Copyright Metni
+        *   Alt Açıklama Yazısı
+        *   İletişim E-posta ve Telefon Bilgileri
+    *   Bu veriler veritabanında (`site_ayarlari` tablosu) tutularak tüm site genelinde (`base.html`) anlık olarak güncellenebilir hale geldi.
+*   **Gelişmiş Ayarlar Sayfası:**
+    *   `/admin/kontrol` sayfası, form gruplarına (Site, İletişim, Finansal) ayrıldı.
+    *   Input alanları, odaklanıldığında (focus) mor halka (ring) oluşturan modern bir tasarıma kavuşturuldu.
+
+#### 3. Backend Geliştirmeleri
+*   **Yeni Veritabanı Modelleri:**
+    *   `SiteAyarlari`: Site başlığı, çekim limitleri, footer metinleri ve iletişim bilgilerini tutan singleton model eklendi.
+*   **Yönetim Mantığı (`routers/admin.py`):**
+    *   Admin rotaları, yeni modelleri (SiteAyarlari, NesilAyari) destekleyecek şekilde güncellendi.
+    *   Footer verilerini context processor veya doğrudan route üzerinden template'e aktaran yapı kuruldu.
+
 ### v8.0 (04.01.2026) - Mimari Refactoring, Güvenlik ve Kullanıcı Paneli Genişletmesi
 
 Bu sürümde sistemin altyapısı tamamen modernize edilmiş, güvenlik açıkları kapatılmış, kod tabanı modüler hale getirilmiş ve kullanıcı paneli yeni sayfalarla zenginleştirilmiştir.

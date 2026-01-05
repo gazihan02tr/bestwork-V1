@@ -34,14 +34,22 @@ templates.env.filters["format_large_number"] = format_large_number
 
 # --- MIDDLEWARE: KULLANICI BİLGİSİNİ YÜKLE ---
 @app.middleware("http")
-async def add_user_to_request(request: Request, call_next):
+async def add_context_to_request(request: Request, call_next):
     user_id = request.cookies.get("user_id")
     request.state.user = None
     request.state.cart_count = 0
+    request.state.site_ayarlar = None
     
-    if user_id:
-        db = SessionLocal()
-        try:
+    db = SessionLocal()
+    try:
+        # 1. Site Ayarlarını Yükle
+        site_ayarlar = db.query(models.SiteAyarlari).first()
+        if not site_ayarlar:
+            site_ayarlar = models.SiteAyarlari() # Varsayılan
+        request.state.site_ayarlar = site_ayarlar
+
+        # 2. Kullanıcı Bilgileri
+        if user_id:
             user = db.query(models.Kullanici).filter(models.Kullanici.id == int(user_id)).first()
             if user:
                 request.state.user = user
@@ -52,10 +60,10 @@ async def add_user_to_request(request: Request, call_next):
                     cart_items = db.query(models.SepetUrun).filter(models.SepetUrun.sepet_id == sepet.id).all()
                     total_items = sum(item.adet for item in cart_items)
                     request.state.cart_count = total_items
-        except:
-            pass
-        finally:
-            db.close()
+    except:
+        pass
+    finally:
+        db.close()
     
     response = await call_next(request)
     return response

@@ -261,3 +261,44 @@ async def referans_bonusu_sayfasi(request: Request, db: Session = Depends(get_db
         "current_month": current_month,
         "current_year": current_year
     })
+
+# --- ANLIK EŞLEŞME SAYFASI ---
+@router.get("/anlik-eslesme", response_class=HTMLResponse)
+async def anlik_eslesme_sayfasi(request: Request, db: Session = Depends(get_db)):
+    if not request.state.user:
+        return RedirectResponse(url="/giris", status_code=302)
+    
+    user = request.state.user
+    
+    # PV değerlerini güvenli al
+    sol_pv = user.sol_pv if user.sol_pv else 0
+    sag_pv = user.sag_pv if user.sag_pv else 0
+    
+    # Anlık hesaplanan olası kazanç
+    eslesecek_puan = min(sol_pv, sag_pv)
+    olasi_kazanc = eslesecek_puan * 0.13
+    
+    # Geçmiş Eşleşme Hareketleri (Şimdilik boş list veya mock data)
+    # Burada Cüzdan Hareketleri tablosundan "ESLESME" tipindeki kayıtları çekmek gerekir.
+    # eslesmeler = db.query(models.CuzdanHareket).filter(...)
+    
+    # Tarih filtreleri için varsayılan değerler
+    current_date = datetime.now()
+    current_month = current_date.month
+    current_year = current_date.year
+    
+    eslesmeler = [] # Boş liste şimdilik
+    toplam_kazanc = sum(e.get("kazanc", 0) for e in eslesmeler)
+    
+    return templates.TemplateResponse("anlik_eslesme.html", {
+        "request": request,
+        "user": user,
+        "sol_pv": sol_pv,
+        "sag_pv": sag_pv,
+        "eslesecek_puan": eslesecek_puan,
+        "olasi_kazanc": olasi_kazanc,
+        "eslesmeler": eslesmeler,
+        "toplam_kazanc": toplam_kazanc,
+        "current_month": current_month,
+        "current_year": current_year
+    })
