@@ -22,9 +22,19 @@ async def bestsoft_login_action(
     if not admin or admin.sifre != password:
         return templates.TemplateResponse("bestsoft_login.html", {"request": request, "error": "Geçersiz Kullanıcı Adı veya Şifre"})
     
-    response = RedirectResponse(url="/admin/kontrol", status_code=303)
+    response = RedirectResponse(url="/admin/dashboard", status_code=303)
     response.set_cookie(key="admin_user", value=username)
     return response
+
+
+# ADMIN DASHBOARD (YENİ ANASAYFA)
+@router.get("/admin/dashboard", response_class=HTMLResponse)
+def admin_dashboard(request: Request, db: Session = Depends(get_db)):
+    admin_user = request.cookies.get("admin_user")
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+    
+    return templates.TemplateResponse("bestsoft_dashboard.html", {"request": request})
 
 
 # ADMIN KONTROL SAYFASI
