@@ -1,872 +1,187 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-BestWork Web Installer - Tek Dosya Sürümü
-Modern, responsive ve otomatik tarayıcı açan kurulum sihirbazı
-FastAPI + Uvicorn + WebSocket + Embedded HTML
-"""
-
 import os
 import sys
-import json
-import getpass
-import asyncio
-import webbrowser
-import threading
+import subprocess
 import time
-from datetime import datetime
-from zoneinfo import ZoneInfo
-from typing import Optional
+import platform
+import socket
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from sqlalchemy import create_engine, text
-import uvicorn
+# Renk Kodları
+GREEN = '\033[92m'
+RED = '\033[91m'
+YELLOW = '\033[93m'
+BLUE = '\033[94m'
+RESET = '\033[0m'
 
-# Proje dizinini path'e ekle
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+def print_banner():
+    banner = f"""{BLUE}
+    ===============================================
+       BESTWORK NETWORK MARKETING - KURULUM SİHİRBAZI
+    ===============================================
+    v10.1 - Installer Wizard (Redis Integrated)
+    {RESET}"""
+    print(banner)
 
-app = FastAPI(title="BestWork Installer", version="1.0.0")
+def check_os():
+    system = platform.system()
+    print(f"{GREEN}[✓] İşletim Sistemi Tespit Edildi: {system}{RESET}")
+    return system
 
-# WebSocket bağlantı yönetimi
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: list[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-
-    async def send_message(self, message: dict):
-        for connection in self.active_connections[:]:
-            try:
-                await connection.send_json(message)
-            except:
-                self.active_connections.remove(connection)
-
-manager = ConnectionManager()
-
-# Global installation state
-installation_state = {
-    'status': 'idle',
-    'progress': 0,
-    'current_step': '',
-    'logs': [],
-    'db_config': None
-}
-
-async def log_message(message: str, type: str = "info"):
-    """Log mesajı ekle ve WebSocket üzerinden gönder"""
-    timestamp = datetime.now(ZoneInfo("Europe/Istanbul")).strftime("%H:%M:%S")
-    log_entry = {
-        'timestamp': timestamp,
-        'message': message,
-        'type': type
-    }
-    installation_state['logs'].append(log_entry)
-    
-    await manager.send_message({
-        'type': 'log',
-        'data': log_entry
-    })
-
-async def update_progress(progress: int, step: str = ""):
-    """İlerleme durumunu güncelle"""
-    installation_state['progress'] = progress
-    if step:
-        installation_state['current_step'] = step
-    
-    await manager.send_message({
-        'type': 'progress',
-        'data': {
-            'progress': progress,
-            'step': step
-        }
-    })
-
-# HTML Template (Gömülü)
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BestSoft Kurulum Ekranı</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f5f5f5; /* MD3 Surface Container Low */
-            color: #1D1B20;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .md3-card {
-            background-color: #ffffff; /* MD3 Surface */
-            border-radius: 24px; /* MD3 Large Shape */
-            box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30); /* MD3 Elevation 1 */
-            transition: background-color 0.3s;
-        }
-        .md3-filled-btn {
-            background-color: #6750A4; /* MD3 Primary */
-            color: #ffffff; /* MD3 On Primary */
-            border-radius: 100px; /* MD3 Full Shape */
-            padding: 10px 24px;
-            font-weight: 500;
-            transition: box-shadow 0.2s, background-color 0.2s;
-        }
-        .md3-filled-btn:hover {
-            background-color: #6750A4;
-            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15); /* Elevation 2 */
-        }
-        .md3-filled-btn:disabled {
-            background-color: #1D1B201F; /* On Surface 12% */
-            color: #1D1B2061; /* On Surface 38% */
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        .md3-text-field {
-            background-color: #f0f0f0; /* Surface Container Highest */
-            border-radius: 4px 4px 0 0;
-            border-bottom: 1px solid #49454F; /* Outline */
-            transition: background-color 0.2s, border-color 0.2s;
-        }
-        .md3-text-field:focus-within {
-            border-bottom: 2px solid #6750A4; /* Primary */
-            background-color: #e6e6e6;
-        }
-        .md3-text-field input {
-            background: transparent;
-            border: none;
-            outline: none;
-            width: 100%;
-            padding: 24px 16px 8px 16px;
-            font-size: 16px;
-            color: #1D1B20; /* On Surface */
-        }
-        .md3-text-field label {
-            position: absolute;
-            left: 16px;
-            top: 18px;
-            font-size: 16px;
-            color: #49454F; /* On Surface Variant */
-            transition: 0.2s ease all;
-            pointer-events: none;
-        }
-        .md3-text-field input:focus ~ label,
-        .md3-text-field input:not(:placeholder-shown) ~ label {
-            top: 6px;
-            font-size: 12px;
-            color: #6750A4; /* Primary */
-        }
-        .terminal-log {
-            background-color: #1e1e1e;
-            color: #00ff00;
-            font-family: monospace;
-        }
-
-        /* Dark Mode Styles */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #141218; /* MD3 Dark Surface Container Low */
-                color: #E6E1E5;
-            }
-            .md3-card {
-                background-color: #1D1B20; /* MD3 Dark Surface Container */
-                box-shadow: 0px 1px 3px 1px rgba(0, 0, 0, 0.3), 0px 1px 2px 0px rgba(0, 0, 0, 0.6);
-            }
-            .md3-filled-btn {
-                background-color: #D0BCFF; /* MD3 Dark Primary */
-                color: #381E72; /* MD3 Dark On Primary */
-            }
-            .md3-filled-btn:hover {
-                background-color: #E8DEF8;
-            }
-            .md3-filled-btn:disabled {
-                background-color: #E6E1E51F;
-                color: #E6E1E561;
-            }
-            .md3-text-field {
-                background-color: #49454F; /* MD3 Dark Surface Container Highest */
-                border-bottom: 1px solid #938F99;
-            }
-            .md3-text-field:focus-within {
-                border-bottom: 2px solid #D0BCFF;
-                background-color: #4F378B;
-            }
-            .md3-text-field input {
-                color: #E6E1E5;
-            }
-            .md3-text-field label {
-                color: #CAC4D0;
-            }
-            .md3-text-field input:focus ~ label,
-            .md3-text-field input:not(:placeholder-shown) ~ label {
-                color: #D0BCFF;
-            }
-        }
-    </style>
-</head>
-<body class="flex items-center justify-center min-h-screen p-4">
-
-    <div class="md3-card w-full max-w-4xl p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-        
-        <!-- Sol Taraf: Başlık ve Form -->
-        <div class="space-y-6">
-            <div>
-                <h1 class="text-3xl font-normal text-[#1D1B20] dark:text-[#E6E1E5]">BestSoft</h1>
-                <p class="text-[#49454F] dark:text-[#CAC4D0] text-lg">Kurulum Ekranı</p>
-            </div>
-
-            <form id="dbForm" class="space-y-4">
-                <div class="md3-text-field relative">
-                    <input type="text" id="host" value="{{ current_config['host'] }}" placeholder=" " required>
-                    <label for="host">Sunucu (Host)</label>
-                </div>
-                
-                <div class="md3-text-field relative">
-                    <input type="text" id="port" value="{{ current_config['port'] }}" placeholder=" " required>
-                    <label for="port">Port</label>
-                </div>
-                
-                <div class="md3-text-field relative">
-                    <input type="text" id="dbname" value="{{ current_config['dbname'] }}" placeholder=" " required>
-                    <label for="dbname">Veritabanı Adı</label>
-                </div>
-                
-                <div class="md3-text-field relative">
-                    <input type="text" id="user" value="{{ current_config['user'] }}" placeholder=" " required>
-                    <label for="user">Kullanıcı Adı</label>
-                </div>
-                
-                <div class="md3-text-field relative">
-                    <input type="password" id="password" value="{{ current_config['password'] }}" placeholder=" ">
-                    <label for="password">Şifre</label>
-                </div>
-
-                <div class="flex gap-4 pt-2">
-                    <button type="button" onclick="testConnection()" id="testBtn" class="md3-filled-btn flex-1 flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined text-lg">link</span>
-                        Bağlantıyı Test Et
-                    </button>
-                </div>
-                <div id="connectionStatus" class="hidden text-sm mt-2"></div>
-            </form>
-        </div>
-
-        <!-- Sağ Taraf: İşlem ve Loglar -->
-        <div class="flex flex-col space-y-6">
-            
-            <div class="bg-[#F3EDF7] dark:bg-[#2B2930] p-6 rounded-2xl space-y-4 transition-colors duration-300">
-                <h2 class="text-xl text-[#1D1B20] dark:text-[#E6E1E5] font-medium">Sistem Kurulumu</h2>
-                <p class="text-[#49454F] dark:text-[#CAC4D0] text-sm">Veritabanı tabloları oluşturulacak ve örnek veriler yüklenecektir.</p>
-                
-                <button type="button" onclick="startInstallation()" id="installBtn" disabled class="md3-filled-btn w-full flex items-center justify-center gap-2 bg-[#2E7D32] hover:bg-[#1B5E20] dark:bg-[#4ADE80] dark:text-[#052e16] dark:hover:bg-[#22c55e]">
-                    <span class="material-symbols-outlined text-lg">rocket_launch</span>
-                    Kurulumu Başlat
-                </button>
-
-                <!-- Progress Bar -->
-                <div id="progressContainer" class="hidden space-y-1">
-                    <div class="flex justify-between text-xs text-[#49454F] dark:text-[#CAC4D0]">
-                        <span id="progressText">Hazırlanıyor...</span>
-                        <span id="progressPercent">0%</span>
-                    </div>
-                    <div class="w-full bg-[#E0E0E0] dark:bg-[#49454F] rounded-full h-1">
-                        <div id="progressBar" class="bg-[#6750A4] dark:bg-[#D0BCFF] h-1 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex-1 flex flex-col">
-                <h3 class="text-sm font-medium text-[#49454F] dark:text-[#CAC4D0] mb-2">Sistem Logları</h3>
-                <div id="logContainer" class="terminal-log flex-1 rounded-xl p-4 text-xs overflow-y-auto h-48 custom-scrollbar border border-transparent dark:border-[#49454F]">
-                    <div class="text-gray-400">> BestSoft Kurulum Sihirbazı hazır.</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let ws = null;
-        let connectionTested = false;
-        
-        function connectWebSocket() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
-            
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.type === 'log') addLog(data.data);
-                else if (data.type === 'progress') updateProgress(data.data.progress, data.data.step);
-            };
-            
-            ws.onclose = () => setTimeout(connectWebSocket, 3000);
-        }
-        
-        function addLog(logData) {
-            const logContainer = document.getElementById('logContainer');
-            const logLine = document.createElement('div');
-            const time = logData.timestamp;
-            
-            let colorClass = 'text-gray-300';
-            if (logData.type === 'success') colorClass = 'text-green-400';
-            else if (logData.type === 'error') colorClass = 'text-red-400';
-            else if (logData.type === 'warning') colorClass = 'text-yellow-400';
-            
-            logLine.className = `${colorClass} mb-1`;
-            logLine.innerHTML = `<span class="text-gray-500">[${time}]</span> ${logData.message}`;
-            
-            logContainer.appendChild(logLine);
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
-        
-        function updateProgress(progress, step) {
-            document.getElementById('progressContainer').classList.remove('hidden');
-            document.getElementById('progressBar').style.width = progress + '%';
-            document.getElementById('progressPercent').textContent = progress + '%';
-            document.getElementById('progressText').textContent = step;
-        }
-        
-        async function testConnection() {
-            const btn = document.getElementById('testBtn');
-            const originalContent = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Test Ediliyor...';
-            
-            const data = {
-                host: document.getElementById('host').value,
-                port: document.getElementById('port').value,
-                dbname: document.getElementById('dbname').value,
-                user: document.getElementById('user').value,
-                password: document.getElementById('password').value
-            };
-            
-            try {
-                const response = await fetch('/api/test-connection', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                
-                const statusDiv = document.getElementById('connectionStatus');
-                statusDiv.classList.remove('hidden');
-                
-                if (result.success) {
-                    statusDiv.className = 'text-sm mt-2 text-green-600 font-medium flex items-center gap-1';
-                    statusDiv.innerHTML = '<span class="material-symbols-outlined text-sm">check_circle</span> Bağlantı Başarılı';
-                    connectionTested = true;
-                    document.getElementById('installBtn').disabled = false;
-                    
-                    await fetch('/api/save-config', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-                } else {
-                    statusDiv.className = 'text-sm mt-2 text-red-600 font-medium flex items-center gap-1';
-                    statusDiv.innerHTML = `<span class="material-symbols-outlined text-sm">error</span> ${result.message}`;
-                    connectionTested = false;
-                    document.getElementById('installBtn').disabled = true;
-                }
-            } catch (error) {
-                console.error(error);
-            }
-            
-            btn.disabled = false;
-            btn.innerHTML = originalContent;
-        }
-        
-        async function startInstallation() {
-            if (!connectionTested) return;
-            
-            const btn = document.getElementById('installBtn');
-            btn.disabled = true;
-            
-            try {
-                await fetch('/api/install', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-            } catch (error) {
-                alert('Hata: ' + error.message);
-                btn.disabled = false;
-            }
-        }
-        
-        window.onload = connectWebSocket;
-    </script>
-</body>
-</html>
-"""
-
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    """Ana sayfa"""
-    current_config = load_current_config()
-    
-    # Template'i render et
-    html = HTML_TEMPLATE
-    for key, value in current_config.items():
-        html = html.replace(f"{{{{ current_config['{key}'] }}}}", str(value))
-    
-    return HTMLResponse(content=html)
-
-@app.get("/api/config")
-async def get_config():
-    """Mevcut yapılandırmayı getir"""
-    return JSONResponse(load_current_config())
-
-@app.post("/api/test-connection")
-async def test_connection(data: dict):
-    """Veritabanı bağlantısını test et"""
+def run_command(command, description, exit_on_error=True):
+    print(f"{YELLOW}[*] {description}...{RESET}", end=" ")
+    sys.stdout.flush()
     try:
-        user = data.get('user', '')
-        password = data.get('password', '')
-        host = data.get('host', 'localhost')
-        port = data.get('port', '5432')
-        dbname = data.get('dbname', 'bestwork')
-        
-        if password:
-            db_url = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+        if ">" in command:
+            subprocess.run(command, shell=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
         else:
-            db_url = f"postgresql://{user}@{host}:{port}/{dbname}"
-        
-        engine = create_engine(db_url)
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        
-        installation_state['db_config'] = {
-            'user': user,
-            'password': password,
-            'host': host,
-            'port': port,
-            'dbname': dbname,
-            'url': db_url
-        }
-        
-        return JSONResponse({
-            'success': True,
-            'message': 'Veritabanı bağlantısı başarılı! Kuruluma geçebilirsiniz.'
-        })
-        
-    except Exception as e:
-        return JSONResponse({
-            'success': False,
-            'message': f'Bağlantı hatası: {str(e)}'
-        }, status_code=400)
-
-@app.post("/api/save-config")
-async def save_config(data: dict):
-    """Yapılandırmayı .env dosyasına kaydet"""
-    try:
-        user = data.get('user', '')
-        password = data.get('password', '')
-        host = data.get('host', 'localhost')
-        port = data.get('port', '5432')
-        dbname = data.get('dbname', 'bestwork')
-        
-        if password:
-            db_url = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+            args = command.split()
+            subprocess.run(args, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+        print(f"{GREEN}OK{RESET}")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"{RED}HATA{RESET}")
+        # Hata detayını göster
+        if e.stderr:
+             print(f"{RED}Hata Detayı:{RESET} {e.stderr.decode('utf-8')}")
         else:
-            db_url = f"postgresql://{user}@{host}:{port}/{dbname}"
-        
-        env_content = f"""DATABASE_URL={db_url}
-SECRET_KEY=supersecretkey123
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-"""
-        
-        with open(".env", "w") as f:
-            f.write(env_content)
-        
-        os.environ["DATABASE_URL"] = db_url
-        
-        return JSONResponse({
-            'success': True,
-            'message': 'Yapılandırma .env dosyasına kaydedildi.'
-        })
-        
-    except Exception as e:
-        return JSONResponse({
-            'success': False,
-            'message': f'Kayıt hatası: {str(e)}'
-        }, status_code=500)
+             print(f"{RED}Hata Detayı:{RESET} {e}")
+             
+        if exit_on_error:
+            print(f"{RED}Kurulum durduruldu.{RESET}")
+            sys.exit(1)
+        return False
 
-@app.post("/api/install")
-async def start_installation():
-    """Tam kurulumu başlat"""
-    if installation_state['status'] == 'running':
-        return JSONResponse({
-            'success': False,
-            'message': 'Kurulum zaten çalışıyor!'
-        }, status_code=400)
-    
-    if not installation_state['db_config']:
-        return JSONResponse({
-            'success': False,
-            'message': 'Önce veritabanı bağlantısını test edin!'
-        }, status_code=400)
-    
-    threading.Thread(target=run_installation_sync, daemon=True).start()
-    
-    return JSONResponse({
-        'success': True,
-        'message': 'Kurulum başlatıldı...'
-    })
+def check_port(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
 
-def run_installation_sync():
-    """Kurulum işlemini senkron olarak çalıştır"""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(run_installation())
-
-async def run_installation():
-    """Kurulum işlemini çalıştır"""
-    installation_state['status'] = 'running'
-    installation_state['progress'] = 0
-    installation_state['logs'] = []
-    
+def check_and_install_brew():
+    # Sadece macOS için
     try:
-        await log_message("🚀 Kurulum başlatılıyor...", "info")
-        await update_progress(10, "Başlatılıyor...")
-        await asyncio.sleep(0.5)
-        
-        await log_message("🗄️ Veritabanı tabloları oluşturuluyor...", "info")
-        await update_progress(20, "Veritabanı tabloları oluşturuluyor...")
-        
-        from app.database import engine, Base
-        from app import models
-        
-        Base.metadata.create_all(bind=engine)
-        await log_message("✅ Tablolar başarıyla oluşturuldu.", "success")
-        await update_progress(40, "Tablolar oluşturuldu")
-        await asyncio.sleep(0.3)
-        
-        await log_message("👤 Kök (Admin) kullanıcı kontrol ediliyor...", "info")
-        await update_progress(50, "Admin kullanıcı oluşturuluyor...")
-        
-        from app.database import SessionLocal
-        db = SessionLocal()
-        
-        try:
-            mevcut = db.query(models.Kullanici).first()
-            if mevcut:
-                await log_message(f"ℹ️ Zaten bir kullanıcı var: {mevcut.tam_ad}", "warning")
-            else:
-                root = models.Kullanici(
-                    tam_ad="BestWork Kurucu",
-                    email="admin@bestwork.com",
-                    telefon="05550001122",
-                    sifre="123456",
-                    referans_id=None,
-                    parent_id=None,
-                    kol=None,
-                    uye_no="900000001",
-                    rutbe="Triple President",
-                    kayit_tarihi=datetime.now(ZoneInfo("Europe/Istanbul")),
-                    yerlestirme_tarihi=datetime.now(ZoneInfo("Europe/Istanbul")),
-                    sol_pv=0,
-                    sag_pv=0,
-                    toplam_sol_pv=100000000,
-                    toplam_sag_pv=100000000,
-                    toplam_cv=0.0
-                )
-                db.add(root)
-                db.commit()
-                db.refresh(root)
-                await log_message(f"✅ Kök Kullanıcı Oluşturuldu: {root.tam_ad}", "success")
-                await log_message(f"📧 Email: admin@bestwork.com | Şifre: 123456", "info")
+        subprocess.run(["brew", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+        print(f"{GREEN}[✓] Homebrew yüklü.{RESET}")
+    except:
+        print(f"{YELLOW}[!] Homebrew bulunamadı. Redis kurulumu için Homebrew gereklidir.{RESET}")
+        user_input = input(f"{YELLOW}[?] Homebrew kurulsun mu? (e/H): {RESET}")
+        if user_input.lower() == 'e':
+             print(f"{BLUE}Homebrew kuruluyor... (Bu işlem uzun sürebilir ve şifre isteyebilir){RESET}")
+             os.system('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"')
+        else:
+             print(f"{RED}Homebrew olmadan devam edilemiyor.{RESET}")
+             sys.exit(1)
 
-                # Admin Banka Bilgisi
-                root_banka = models.BankaBilgisi(
-                    user_id=root.id,
-                    hesap_sahibi="BestWork A.Ş.",
-                    banka_adi="Ziraat Bankası",
-                    iban="TR000000000000000000000000",
-                    swift_kodu="TCZBATR2A"
-                )
-                db.add(root_banka)
-                
-                # Admin Varis Bilgisi
-                root_varis = models.Varis(
-                    kullanici_id=root.id,
-                    ad_soyad="Yedek Yönetici",
-                    tc="11111111111",
-                    telefon="5559998877",
-                    email="yedek@bestwork.com",
-                    yakinlik="Ortak",
-                    adres="Şirket Merkezi"
-                )
-                db.add(root_varis)
-                db.commit()
-                await log_message("✅ Admin ek bilgileri (Banka, Varis) eklendi.", "success")
-                
-                # Bekleyen Üyeler (Örnek)
-                bekleyen1 = models.Kullanici(
-                    uye_no="900000002",
-                    tam_ad="Ahmet Yılmaz",
-                    email="ahmet@test.com",
-                    sifre="123",
-                    telefon="5551112233",
-                    referans_id=root.id,
-                    parent_id=None,
-                    kol=None,
-                    kayit_tarihi=datetime.now(ZoneInfo("Europe/Istanbul"))
-                )
-                
-                bekleyen2 = models.Kullanici(
-                    uye_no="900000003",
-                    tam_ad="Ayşe Demir",
-                    email="ayse@test.com",
-                    sifre="123",
-                    telefon="5554445566",
-                    referans_id=root.id,
-                    parent_id=None,
-                    kol=None,
-                    kayit_tarihi=datetime.now(ZoneInfo("Europe/Istanbul"))
-                )
-                
-                db.add(bekleyen1)
-                db.add(bekleyen2)
-                db.commit()
-                await log_message("✅ Örnek bekleyen üyeler eklendi.", "success")
-
-                # Varsayılan Ayarlar
-                varsayilan_ayarlar = {
-                    "kayit_pv": 100.0,
-                    "kayit_cv": 50.0,
-                    "referans_orani": 0.20,
-                    "eslesme_kazanc": 10.0,
-                    "matching_orani": 0.10,
-                    "kisa_kol_oran": 0.13
-                }
-
-                for anahtar, deger in varsayilan_ayarlar.items():
-                    existing_setting = db.query(models.Ayarlar).filter(models.Ayarlar.anahtar == anahtar).first()
-                    if not existing_setting:
-                        db.add(models.Ayarlar(anahtar=anahtar, deger=deger))
-                
-                db.commit()
-                await log_message("✅ Varsayılan ayarlar yüklendi.", "success")
-
-        except Exception as e:
-            db.rollback()
-            raise e
-        
-        await update_progress(60, "Admin kullanıcı hazır")
-        await asyncio.sleep(0.3)
-        
-        await log_message("📁 Kategoriler ekleniyor...", "info")
-        await update_progress(70, "Kategoriler ekleniyor...")
-        
-        kategoriler = [
-            {"ad": "Elektronik", "aciklama": "Teknoloji ürünleri", "resim_url": "💻"},
-            {"ad": "Giyim", "aciklama": "Kıyafet ve tekstil", "resim_url": "👔"},
-            {"ad": "Kozmetik", "aciklama": "Güzellik ürünleri", "resim_url": "💄"},
-            {"ad": "Ev & Yaşam", "aciklama": "Ev eşyaları", "resim_url": "🏠"},
-        ]
-        
-        for kat in kategoriler:
-            existing = db.query(models.Kategori).filter(models.Kategori.ad == kat["ad"]).first()
-            if not existing:
-                db_kat = models.Kategori(**kat)
-                db.add(db_kat)
-                await log_message(f"  ✓ Kategori eklendi: {kat['ad']}", "success")
-        
-        db.commit()
-        await update_progress(80, "Kategoriler eklendi")
-        await asyncio.sleep(0.3)
-        
-        await log_message("📦 Örnek ürünler ekleniyor...", "info")
-        await update_progress(85, "Ürünler ekleniyor...")
-        
-        urunler = get_sample_products()
-        
-        added_count = 0
-        for urun_data in urunler:
-            existing = db.query(models.Urun).filter(models.Urun.ad == urun_data["ad"]).first()
-            if not existing:
-                db_urun = models.Urun(**urun_data)
-                db.add(db_urun)
-                added_count += 1
-                await log_message(f"  ✓ Ürün eklendi: {urun_data['ad']}", "success")
-        
-        db.commit()
-        db.close()
-        
-        await update_progress(100, "Kurulum tamamlandı!")
-        await log_message(f"✨ {added_count} ürün başarıyla eklendi!", "success")
-        await log_message("🎉 BestWork sistemi kullanıma hazır!", "success")
-        await log_message("🔐 Giriş Bilgileri: admin@bestwork.com / 123456", "info")
-        
-        installation_state['status'] = 'completed'
-        
-    except Exception as e:
-        import traceback
-        error_msg = traceback.format_exc()
-        await log_message(f"❌ HATA: {str(e)}", "error")
-        await log_message(f"Detay: {error_msg}", "error")
-        installation_state['status'] = 'error'
-        await update_progress(0, "Hata oluştu")
-
-def get_sample_products():
-    """Örnek ürün listesi"""
-    return [
-        {
-            "ad": "Akıllı Telefon",
-            "aciklama": "En son teknoloji ile donatılmış, yüksek performanslı akıllı telefon. 5G destekli, 128GB hafıza.",
-            "fiyat": 12999.00,
-            "indirimli_fiyat": 9999.00,
-            "stok": 50,
-            "kategori_id": 1,
-            "resim_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400",
-            "pv_degeri": 500
-        },
-        {
-            "ad": "Kablosuz Kulaklık",
-            "aciklama": "Aktif gürültü engelleme özellikli, 30 saat pil ömrü sunan premium kulaklık.",
-            "fiyat": 2499.00,
-            "indirimli_fiyat": 1999.00,
-            "stok": 100,
-            "kategori_id": 1,
-            "resim_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
-            "pv_degeri": 100
-        },
-        {
-            "ad": "Erkek Gömlek",
-            "aciklama": "Pamuklu, şık ve rahat kesim erkek gömleği. Günlük ve iş hayatınız için ideal.",
-            "fiyat": 599.00,
-            "stok": 75,
-            "kategori_id": 2,
-            "resim_url": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400",
-            "pv_degeri": 30
-        },
-        {
-            "ad": "Kadın Elbise",
-            "aciklama": "Modern ve zarif tasarım, özel günler için mükemmel bir seçim.",
-            "fiyat": 899.00,
-            "indirimli_fiyat": 699.00,
-            "stok": 40,
-            "kategori_id": 2,
-            "resim_url": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400",
-            "pv_degeri": 40
-        },
-        {
-            "ad": "Nemlendirici Krem",
-            "aciklama": "Doğal içerikli, tüm cilt tiplerine uygun nemlendirici. 24 saat etki.",
-            "fiyat": 349.00,
-            "indirimli_fiyat": 249.00,
-            "stok": 200,
-            "kategori_id": 3,
-            "resim_url": "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400",
-            "pv_degeri": 20
-        },
-        {
-            "ad": "Makyaj Seti",
-            "aciklama": "Profesyonel makyaj seti, 12 parça. Her duruma uygun renkler.",
-            "fiyat": 1299.00,
-            "indirimli_fiyat": 999.00,
-            "stok": 60,
-            "kategori_id": 3,
-            "resim_url": "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=400",
-            "pv_degeri": 80
-        },
-        {
-            "ad": "Kahve Makinesi",
-            "aciklama": "Otomatik kahve makinesi, 15 bar basınç, süt köpürtme özelliği.",
-            "fiyat": 3499.00,
-            "indirimli_fiyat": 2799.00,
-            "stok": 30,
-            "kategori_id": 4,
-            "resim_url": "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=400",
-            "pv_degeri": 150
-        },
-        {
-            "ad": "Yastık Seti",
-            "aciklama": "Anti-alerjik, ortopedik yastık seti. 2 adet, farklı sertlik seçenekleri.",
-            "fiyat": 799.00,
-            "indirimli_fiyat": 599.00,
-            "stok": 120,
-            "kategori_id": 4,
-            "resim_url": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400",
-            "pv_degeri": 35
-        },
-    ]
-
-def load_current_config():
-    """Mevcut .env yapılandırmasını yükle"""
-    config = {
-        'host': 'localhost',
-        'port': '5432',
-        'dbname': 'bestwork',
-        'user': getpass.getuser(),
-        'password': ''
-    }
+def install_redis(os_type):
+    print(f"\n{BLUE}--- REDIS KURULUMU ve AYARLARI ---{RESET}")
     
-    if os.path.exists(".env"):
+    redis_installed = False
+    
+    if os_type == "Darwin": # macOS
+        check_and_install_brew()
+        
+        # 1. Redis kurulu mu kontrol et (Komut satırından)
         try:
-            with open(".env", "r") as f:
-                content = f.read()
-                for line in content.splitlines():
-                    if line.startswith("DATABASE_URL="):
-                        url = line.split("=", 1)[1].strip()
-                        if "://" in url:
-                            prefix, rest = url.split("://", 1)
-                            if "@" in rest:
-                                creds, addr_db = rest.split("@", 1)
-                                user_pass = creds.split(":", 1)
-                                config['user'] = user_pass[0]
-                                config['password'] = user_pass[1] if len(user_pass) > 1 else ""
-                                
-                                if "/" in addr_db:
-                                    addr, dbname = addr_db.split("/", 1)
-                                    host_port = addr.split(":", 1)
-                                    config['host'] = host_port[0]
-                                    config['port'] = host_port[1] if len(host_port) > 1 else "5432"
-                                    config['dbname'] = dbname
+             subprocess.run(["redis-server", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+             print(f"{GREEN}[✓] Redis zaten yüklü.{RESET}")
+             redis_installed = True
         except:
-            pass
-    
-    return config
+             print(f"{YELLOW}[*] Redis bulunamadı. Homebrew ile kuruluyor...{RESET}")
+             run_command("brew install redis", "Redis indiriliyor")
+             redis_installed = True
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket bağlantısı"""
-    await manager.connect(websocket)
+        # 2. Servisi Başlat
+        if redis_installed:
+            if not check_port(6379):
+                print(f"{YELLOW}[*] Redis servisi başlatılıyor...{RESET}")
+                # brew services start redis genellikle asenkron çalışır, biraz bekleyelim
+                subprocess.run(["brew", "services", "start", "redis"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                time.sleep(3)
+            
+            # 3. Test Et
+            if check_port(6379):
+                print(f"{GREEN}[✓] Redis Port 6379 üzerinde aktif!{RESET}")
+            else:
+                 print(f"{RED}[!] Redis servisi başlatılamadı. Manuel kontrol gerekebilir (`brew services list`){RESET}")
+                 # Kritik hata değil, uygulama Redis'siz de çalışabilir (Fallback var)
+
+    elif os_type == "Linux":
+        print(f"{YELLOW}[!] Linux detected. Trying apt-get...{RESET}")
+        run_command("sudo apt-get update && sudo apt-get install redis-server -y", "Redis kuruluyor", exit_on_error=False)
+        run_command("sudo systemctl start redis-server", "Redis başlatılıyor", exit_on_error=False)
+
+    else:
+        print(f"{YELLOW}[!] Windows kurulumu exe ile yapılmalıdır. Redis adımı atlanıyor.{RESET}")
+
+def manage_env_file():
+    print(f"\n{BLUE}--- KONFİGÜRASYON (.env) ---{RESET}")
+    if not os.path.exists(".env"):
+        print(f"{YELLOW}[*] .env dosyası oluşturuluyor...{RESET}")
+        with open(".env", "w") as f:
+            f.write('DATABASE_URL="sqlite:///./bestwork.db"\n')
+            f.write('SECRET_KEY="gizli_anahtar_buraya_gelecek_random_string_v10_1"\n')
+            f.write('ALGORITHM="HS256"\n')
+            f.write('ACCESS_TOKEN_EXPIRE_MINUTES=30\n')
+            f.write('REDIS_URL="redis://localhost:6379/0"\n')
+        print(f"{GREEN}[✓] .env dosyası oluşturuldu.{RESET}")
+    else:
+        # Mevcut .env'de REDIS_URL var mı kontrol et, yoksa ekle
+        with open(".env", "r") as f:
+            content = f.read()
+        if "REDIS_URL" not in content:
+            print(f"{YELLOW}[*] .env dosyasına REDIS_URL ekleniyor...{RESET}")
+            with open(".env", "a") as f:
+                f.write('\nREDIS_URL="redis://localhost:6379/0"\n')
+        print(f"{GREEN}[✓] .env konfigürasyonu güncel.{RESET}")
+
+def check_python_dependencies():
+    print(f"\n{BLUE}--- PYTHON KÜTÜPHANELERİ ---{RESET}")
+    print(f"{YELLOW}[*] Gerekli paketler yükleniyor (requirements.txt)...{RESET}")
     try:
-        while True:
-            data = await websocket.receive_text()
-            if data == "ping":
-                await websocket.send_text("pong")
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        print(f"{GREEN}[✓] Kütüphaneler başarıyla yüklendi.{RESET}")
+    except subprocess.CalledProcessError:
+        print(f"{RED}[!] Kütüphane yüklenirken hata oluştu.{RESET}")
+        sys.exit(1)
 
-def open_browser():
-    """Tarayıcıyı otomatik aç"""
-    time.sleep(1.5)
-    webbrowser.open('http://localhost:8765')
+def init_db():
+    print(f"\n{BLUE}--- VERİTABANI BAŞLATMA ---{RESET}")
+    if os.path.exists("reset_db.py"):
+        user_input = input(f"{YELLOW}[?] Veritabanını silip temiz kurulum yapmak ister misiniz? (e/H): {RESET}")
+        if user_input.lower() == 'e':
+            run_command(f"{sys.executable} reset_db.py", "Veritabanı sıfırlanıyor")
+            print(f"{GREEN}[✓] Veritabanı ve örnek veriler hazır.{RESET}")
+        else:
+            print(f"{GREEN}[*] Veritabanı sıfırlama adımı atlandı.{RESET}")
+    else:
+        print(f"{RED}[!] reset_db.py bulunamadı. Veritabanı oluşturulamadı.{RESET}")
+
+def main():
+    print_banner()
+    os_type = check_os()
+    
+    # 0. Sanal Ortam Kontrolü
+    if not (hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix)):
+         print(f"{RED}[UYARI] Sanal ortam (venv) aktif DEĞİL!{RESET}")
+         print(f"{YELLOW}Sistem paketlerini bozmamak için önce 'source .venv/bin/activate' yapmanız önerilir.{RESET}")
+         # Kullanıcıya sormadan devam etmeyelim, ama script takılmasın diye 'input' koyduk
+         # Otomatik kurulumlarda bu input'u kaldırmak gerekebilir.
+
+    # 1. Redis Kurulumu
+    install_redis(os_type)
+
+    # 2. .env Dosyası
+    manage_env_file()
+
+    # 3. Pip Install
+    check_python_dependencies()
+
+    # 4. DB Init
+    init_db()
+
+    print(f"\n{GREEN}==============================================={RESET}")
+    print(f"{GREEN}   KURULUM BAŞARIYLA TAMAMLANDI! (v10.1)   {RESET}")
+    print(f"{GREEN}==============================================={RESET}")
+    print(f"\nSistemi başlatmak için şu komutu çalıştırın:")
+    print(f"\n    {BLUE}uvicorn app.main:app --reload --port 8001{RESET}\n")
 
 if __name__ == "__main__":
-    print("=" * 80)
-    print("🚀  BESTWORK KURULUM SİHİRBAZI")
-    print("=" * 80)
-    print("📡  Sunucu Adresi : http://localhost:8765")
-    print("🌐  Tarayıcı     : Otomatik açılacak...")
-    print("⚡  WebSocket    : Gerçek zamanlı log aktarımı aktif")
-    print("=" * 80)
-    
-    threading.Thread(target=open_browser, daemon=True).start()
-    
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8765,
-        log_level="warning"
-    )
+    main()

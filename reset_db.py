@@ -34,7 +34,7 @@ def reset_database():
         toplam_sol_pv=100000000,
         toplam_sag_pv=100000000,
         toplam_cv=0.0,
-        profil_resmi="/static/uploads/profiles/default_admin.webp" # Varsayılan admin resmi
+        profil_resmi=None # Varsayılan resim kaldırıldı
     )
     db.add(admin)
     db.commit()

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from . import models, schemas
+from .utils import RUTBE_GEREKSINIMLERI
 from fastapi import HTTPException
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -18,25 +19,56 @@ def log_yaz(db: Session, user_id: int, miktar: float, tip: str, mesaj: str):
     db.add(yeni_log)
     db.commit()
 
-# --- 1. FONKSİYON: BOŞ YER BULUCU ---
+# --- 1. FONKSİYON: BOŞ YER BULUCU (ITERATIVE) ---
 def en_alt_bos_yeri_bul(db: Session, parent_id: int, tercih_kol: str):
     """
     Kullanıcı sadece seçtiği kolun (SOL veya SAĞ) en dış hattına kayıt yapabilir.
     İç kollara (inner leg) kayıt yapılmasına izin vermez.
+    Recursive yapıdan While döngüsüne dönüştürülerek Stack Overflow riski sıfırlandı.
     """
-    # Mevcut parent'ın altında, seçilen kolda (SOL veya SAĞ) biri var mı?
-    mevcut_uye = db.query(models.Kullanici).filter(
-        models.Kullanici.parent_id == parent_id,
-        models.Kullanici.kol == tercih_kol
-    ).first()
-
-    if not mevcut_uye:
-        # Eğer o kol boşsa, burası kayıt için doğru yerdir.
-        return parent_id
+    current_parent_id = parent_id
     
-    # EĞER DOLUYSA: 
-    # İçeriye bakma, sadece aynı kol (tercih_kol) üzerinden en aşağı git!
-    return en_alt_bos_yeri_bul(db, mevcut_uye.id, tercih_kol)
+    while True:
+        # Mevcut parent'ın altında, seçilen kolda (SOL veya SAĞ) biri var mı?
+        mevcut_uye = db.query(models.Kullanici).filter(
+            models.Kullanici.parent_id == current_parent_id,
+            models.Kullanici.kol == tercih_kol
+        ).first()
+
+        if not mevcut_uye:
+            # Eğer o kol boşsa, burası kayıt için doğru yerdir.
+            return current_parent_id
+        
+        # EĞER DOLUYSA: 
+        # Bir alt basamağa geç ve döngüye devam et
+        current_parent_id = mevcut_uye.id
+
+def rutbe_guncelle(db: Session, kullanici: models.Kullanici):
+    """
+    Kullanıcının toplam cirosuna (toplam_sol_pv, toplam_sag_pv) bakarak 
+    hak ettiği en yüksek rütbeyi atar.
+    """
+    if not kullanici:
+        return
+        
+    current_sol = kullanici.toplam_sol_pv or 0
+    current_sag = kullanici.toplam_sag_pv or 0
+    
+    yeni_rutbe = "Distribütör" # Default
+    
+    # RUTBE_GEREKSINIMLERI küçükten büyüğe sıralı olduğu için
+    # her sağlayan rütbeyi atayabiliriz, döngü sonunda en yüksek olanda kalır.
+    for r in RUTBE_GEREKSINIMLERI:
+        gerekli_sol = r["sol_pv"]
+        gerekli_sag = r["sag_pv"]
+        rutbe_adi = r["ad"]
+        
+        if current_sol >= gerekli_sol and current_sag >= gerekli_sag:
+            yeni_rutbe = rutbe_adi
+            
+    # Eğer rütbe değiştiyse güncelle
+    if kullanici.rutbe != yeni_rutbe:
+        kullanici.rutbe = yeni_rutbe
 
 # --- 2. FONKSİYON: PUAN DAĞITIM MOTORU (Recursive yerine Iterative) ---
 def ekonomiyi_tetikle(db: Session, baslangic_id: int, satis_pv: int, satis_cv: float):
@@ -70,13 +102,20 @@ def ekonomiyi_tetikle(db: Session, baslangic_id: int, satis_pv: int, satis_cv: f
         # Puan Ekleme
         if ust_uye.sol_pv is None: ust_uye.sol_pv = 0
         if ust_uye.sag_pv is None: ust_uye.sag_pv = 0
+        if ust_uye.toplam_sol_pv is None: ust_uye.toplam_sol_pv = 0
+        if ust_uye.toplam_sag_pv is None: ust_uye.toplam_sag_pv = 0
 
         is_sol = (kol_pozisyonu == models.KolPozisyon.SOL) or (str(kol_pozisyonu) == "SOL")
 
         if is_sol:
             ust_uye.sol_pv += satis_pv
+            ust_uye.toplam_sol_pv += satis_pv
         else:
             ust_uye.sag_pv += satis_pv
+            ust_uye.toplam_sag_pv += satis_pv
+            
+        # Rütbe Kontrolü
+        rutbe_guncelle(db, ust_uye)
         
         db.commit() # Her adımda commit yaparak kilidi bırakır ve diğer işlemlerin araya girmesine izin veririz.
         

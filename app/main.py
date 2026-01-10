@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from . import models
 from .database import SessionLocal, engine
@@ -88,6 +88,24 @@ async def add_context_to_request(request: Request, call_next):
         pass
     finally:
         db.close()
+    
+    # --- ADMIN GÜVENLİK DUVARI (Middleware) ---
+    # /admin ile başlayan tüm sayfalara erişim kontrolü
+    if request.url.path.startswith("/admin"):
+        admin_token = request.cookies.get("admin_token")
+        is_authenticated = False
+        
+        if admin_token and admin_token.startswith("Bearer "):
+            from app import utils
+            # Basit decode işlemi
+            _, _, token_str = admin_token.partition(" ")
+            payload = utils.decode_access_token(token_str)
+            if payload and str(payload.get("sub", "")).startswith("admin:"):
+                is_authenticated = True
+                request.state.admin_user = payload.get("sub").split(":")[1]
+        
+        if not is_authenticated:
+            return RedirectResponse(url="/bestsoft", status_code=303)
     
     response = await call_next(request)
     return response

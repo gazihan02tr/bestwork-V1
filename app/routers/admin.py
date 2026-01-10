@@ -33,6 +33,7 @@ async def bestsoft_login_action(
         key="admin_token", 
         value=f"Bearer {access_token}",
         httponly=True,
+        samesite="lax",
         secure=False
     )
     return response

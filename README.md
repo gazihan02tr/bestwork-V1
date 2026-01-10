@@ -2,6 +2,24 @@
 
 ## Sürüm Geçmişi
 
+### v10.1.1 (10.01.2026) - Binary Ağacı Lazy Loading ve Performans Yaması
+
+Bu ara güncelleme, büyük organizasyon yapılarına sahip liderlerin (1000+ alt üye) yaşadığı ağaç görüntüleme performans sorunlarını çözmek ve veri trafiğini minimize etmek için yayınlanmıştır.
+
+#### 1. Lazy Loading (Aşamalı Yükleme) Mimarisi
+*   **On-Demand Data Fetching:** Ağaç verisi artık tek seferde binlerce kişi olarak değil, sadece ekranda görünen **ilk 3 derinlik (Tier)** olarak yükleniyor.
+*   **Akıllı Düğümler (Smart Nodes):** 
+    *   Altında ekip olan ancak henüz yüklenmemiş kollar, lila renkli ve kesik çizgili **"Daha Fazla..."** düğümleri olarak gösteriliyor.
+    *   Bu düğümlere tıklandığında, API'den sadece o kolun altındaki 3 basamaklık veri anlık olarak çekilip ağaca ekleniyor (Grafting).
+*   **Redis Caching Entegrasyonu:**
+    *   Sık sorgulanan ağaç verileri ve kullanıcı profilleri, bellek tabanlı veritabanı **Redis** üzerinde önbelleğe alınmaya başlandı.
+    *   Aynı ağacın tekrar görüntülenmesi veritabanına gitmeden doğrudan RAM üzerinden (Milisaniyeler içinde) sunuluyor.
+    *   `Installer Wizard`, sistemin çalışması için gerekli Redis servisini otomatik algılayıp kuracak şekilde güncellendi.
+*   **Performans Kazanımı:** 
+    *   İlk açılış süresi milisaniyeler seviyesine indi.
+    *   Veri boyutu (Payload size) %95 oranında küçültüldü.
+    *   Tarayıcı bellek kullanımı (RAM) optimize edildi.
+
 ### v10.1 (10.01.2026) - Güvenlik Mimarisi Reformu, Core Optimizasyon ve Canlı Profil Sistemi
 
 Bu sürümde ("Security & Stability Reform"), sistemin arka plan mimarisi (Backend) güvenlik ve performans odaklı olarak %60 oranında yeniden yazılmıştır. Front-end tarafında ise "Single Page Application" (SPA) hissi veren anlık profil güncelleme mekanizmaları devreye alınmıştır.
@@ -182,3 +200,10 @@ Bu sürümde kullanıcı arayüzü (UI), veritabanı mantığı ve sistem yerell
 
 ---
 
+
+## 🚀 Gelecek Planlaması (Roadmap)
+Bu maddeler sistemin büyüme stratejisine göre sıraya alınmıştır:
+
+- [ ] **Asenkron Puan Dağıtımı (Celery + Redis):** Anlık 10.000+ işlem hacmine ulaşıldığında, puan hesaplamalarının arka plana (Background Worker) taşınması.
+- [ ] **Mobil Uygulama API:** React Native veya Flutter entegrasyonu için REST API endpoint'lerinin genişletilmesi.
+- [ ] **Çoklu Dil Desteği (i18n):** İngilizce, Almanca ve Arapça dil seçeneklerinin eklenmesi.

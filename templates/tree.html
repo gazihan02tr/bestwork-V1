@@ -360,6 +360,7 @@ async function confirmPlacement() {
 }
 
 const container = document.getElementById('tree-viz');
+let globalTreeData = null;
 
 function showError(message) {
     document.getElementById('loading-state').style.display = 'none';
@@ -380,17 +381,19 @@ async function initTree() {
         const data = await response.json();
         if (!data) throw new Error("Ağaç verisi bulunamadı.");
         
+        globalTreeData = data;
+
         // Kullanıcı listesini oluştur
         allUsers = flattenUsers(data);
         
-        renderTree(data);
+        renderTree(globalTreeData);
         document.getElementById('loading-state').style.display = 'none';
         
         // Window resize handler
         window.addEventListener('resize', () => {
             clearTimeout(window.resizeTimer);
             window.resizeTimer = setTimeout(() => {
-                renderTree(data);
+                renderTree(globalTreeData);
             }, 250);
         });
 
@@ -495,6 +498,40 @@ function focusNode(userId) {
     }
 }
 
+async function loadMoreNodes(d3Node) {
+    const nodeId = d3Node.data.id;
+    if (!nodeId) return;
+
+    // Loading göster
+    document.getElementById('loading-state').style.display = 'flex';
+    
+    try {
+        const response = await fetch('/api/tree/' + nodeId);
+        if (!response.ok) throw new Error("Veri alınamadı");
+        
+        const newData = await response.json();
+        
+        // Veriyi güncelle (Referans üzerinden globalTreeData da güncellenir)
+        Object.assign(d3Node.data, newData);
+        delete d3Node.data.expandable; // Artık genişletilebilir değil, yüklendi.
+        
+        // Listeyi güncelle
+        allUsers = flattenUsers(globalTreeData);
+        
+        // Yeniden çiz
+        renderTree(globalTreeData);
+        
+    } catch (e) {
+        console.error(e);
+        alert("Alt ağaç yüklenirken hata oluştu.");
+    } finally {
+        document.getElementById('loading-state').style.display = 'none';
+        
+        // Zoom'u koru veya ilgili node'a odakla
+        // İsteğe bağlı: focusNode(nodeId);
+    }
+}
+
 function renderTree(data) {
     // Temizle
     d3.select("#tree-viz").selectAll("*").remove();
@@ -562,9 +599,13 @@ function renderTree(data) {
         .attr("class", "node")
         .attr("transform", d => `translate(${d.x},${d.y})`)
         .style("cursor", "pointer")
-        .on("click", (event, d) => {
-            if (d.data.id) {
-                // Dolu node tıklama işlemi (Örn: Detay modalı açılabilir)
+        .on("click", async (event, d) => {
+            if (d.data.expandable) {
+                // --- LAZY LOADING ---
+                event.stopPropagation();
+                await loadMoreNodes(d);
+            } else if (d.data.id) {
+                // Dolu node tıklama işlemi
                 console.log("Üye ID:", d.data.id);
             } else {
                 // Boş node tıklama işlemi (Yerleştirme Modalı)
@@ -573,18 +614,24 @@ function renderTree(data) {
             }
         });
 
-    // Node Kartı (Gölge ve Arkaplan)
+    // Node Kartı
     nodes.append("rect")
         .attr("width", nodeWidth)
         .attr("height", nodeHeight)
         .attr("x", -nodeWidth / 2)
         .attr("y", 0)
         .attr("rx", 12)
-        .attr("fill", d => d.data.id ? "#FFFFFF" : "#F8F9FA")
-        .attr("stroke", d => d.data.id ? "#6750A4" : "#D1D5DB")
-        .attr("stroke-width", d => d.data.id ? 0 : 1)
-        .attr("stroke-dasharray", d => d.data.id ? "0" : "4,4")
-        .style("filter", d => d.data.id ? "drop-shadow(0px 4px 6px rgba(0,0,0,0.05))" : "none");
+        .attr("fill", d => {
+            if (d.data.expandable) return "#F3E8FF"; // Lila rengi (Daha Fazla)
+            return d.data.id ? "#FFFFFF" : "#F8F9FA";
+        })
+        .attr("stroke", d => {
+            if (d.data.expandable) return "#7C3AED";
+            return d.data.id ? "#6750A4" : "#D1D5DB";
+        })
+        .attr("stroke-width", d => d.data.id || d.data.expandable ? 1 : 1)
+        .attr("stroke-dasharray", d => d.data.id || d.data.expandable ? "0" : "4,4")
+        .style("filter", "drop-shadow(0px 4px 6px rgba(0,0,0,0.05))");
 
     // İsim ve Bilgiler
     const textGroup = nodes.append("g")

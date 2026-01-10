@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse, RedirectResponse, HTMLResponse
 from app import models, crud
 from app.dependencies import get_db, templates
+from app.redis_client import cache_get, cache_set, cache_delete_pattern # Redis istemcisi
 
 router = APIRouter()
 
@@ -11,8 +12,15 @@ def get_tree_data(user_id: int, request: Request, db: Session = Depends(get_db))
     if not request.state.user:
         raise HTTPException(status_code=401, detail="Giriş yapmalısınız")
     
+    # 1. ÖNCE REDIS CACHE KONTROL EDİLİR
+    cache_key = f"tree_data:{user_id}"
+    cached_data = cache_get(cache_key)
+    if cached_data:
+        # Cache Hit - Log (İsteğe bağlı)
+        print(f"⚡️ Redis Cache'den Çekildi: {user_id}")
+        return cached_data
+
     # Kendi ağacını veya admin ise herkesi
-    # Admin kontrolü middleware'de yok, şimdilik sadece kendi.
     if request.state.user.id != user_id:
         raise HTTPException(status_code=403, detail="Yetkisiz erişim")
 
@@ -23,11 +31,12 @@ def get_tree_data(user_id: int, request: Request, db: Session = Depends(get_db))
         if current_depth > MAX_DEPTH:
              # Daha derine inme, burada kes. Frontend'de "Daha Fazla..." butonu eklenebilir.
              return {
-                 "name": "...", 
+                 "name": "Daha Fazla...", 
                  "id": u_id, 
-                 "uye_no": "...", 
-                 "pv": "...", 
-                 "children": []
+                 "uye_no": "", 
+                 "pv": "", 
+                 "children": [],
+                 "expandable": True
              }
 
         user = db.query(models.Kullanici).filter(models.Kullanici.id == u_id).first()
@@ -49,7 +58,13 @@ def get_tree_data(user_id: int, request: Request, db: Session = Depends(get_db))
             ]
         }
     
-    return build_node(user_id)
+    tree_data = build_node(user_id)
+    
+    # 2. REDIS'E KAYDET (5 Dakika = 300 saniye Ömrü)
+    if tree_data:
+        cache_set(cache_key, tree_data, expire=300)
+    
+    return tree_data
 
 @router.get("/api/bekleyen-uyeler/{user_id}")
 def get_bekleyen_uyeler(user_id: int, request: Request, db: Session = Depends(get_db)):
@@ -96,6 +111,13 @@ def yerlestir_api(
 
     try:
         crud.uyeyi_agaca_yerlestir(db, uye_id, parent_id, kol)
+        
+        # 3. CACHE INVALIDATION (Önbellek Temizliği)
+        # Ağaç yapısı değiştiği için bu kullanıcının ve üst sponsorların cache'i silinmeli
+        # Basit yaklaşım: O anki kullanıcının cache'ini sil.
+        # Daha iyi yaklaşım: Tüm ağaç cache'lerini sil (Wildcard ile) çünkü binary ağacı herkesi etkiler.
+        cache_delete_pattern("tree_data:*")
+        
         return {"success": True, "message": "Üye başarıyla yerleştirildi."}
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"success": False, "message": e.detail})
