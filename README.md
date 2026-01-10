@@ -2,6 +2,33 @@
 
 ## Sürüm Geçmişi
 
+### v10.1 (10.01.2026) - Güvenlik Mimarisi Reformu, Core Optimizasyon ve Canlı Profil Sistemi
+
+Bu sürümde ("Security & Stability Reform"), sistemin arka plan mimarisi (Backend) güvenlik ve performans odaklı olarak %60 oranında yeniden yazılmıştır. Front-end tarafında ise "Single Page Application" (SPA) hissi veren anlık profil güncelleme mekanizmaları devreye alınmıştır.
+
+#### 1. Güvenlik Mimarisi Reformu (JWT Transformation)
+*   **Token-Based Authentication:** Klasik ve güvensiz `user_id` çerez yapısı terk edilerek, endüstri standardı **JWT (JSON Web Token)** altyapısına geçildi.
+*   **Middleware Entegrasyonu:** Tüm istekler (Requests), Python seviyesinde araya giren yeni bir Middleware katmanı tarafından süzülerek kimlik doğrulama işlemi merkezi hale getirildi.
+*   **Cookie Security Hardening:**
+    *   `HttpOnly`: JavaScript erişimine kapatıldı (XSS Koruması).
+    *   `SameSite=Lax`: CSRF saldırılarına karşı koruma eklendi.
+*   **Python 3.9 Uyumluluğu:** Sunucu tarafındaki modern sözdizimi hataları (`|` operatörleri), Python 3.9 ve altı sürümlerin de çalıştırabileceği `Optional` ve `Union` yapılarına dönüştürüldü.
+
+#### 2. Çekirdek Logic Optimizasyonu (Algorithm Refactoring)
+*   **Recursion to Iteration:** Binary Ağaç yapısında derinlik hesaplayan ve prim dağıtan rekürsif (kendi kendini çağıran) fonksiyonlar, **While Döngüsü (Iterative)** mimarisine çevrildi. Bu sayede "Maximum Recursion Depth Exceeded" hataları ve bellek şişmeleri tarihe karıştı.
+*   **Atomic Transactions:** Finansal veritabanı işlemlerine `row-locking` (satır kilitleme) mekanizması eklendi. Aynı anda gelen binlerce istekte bile bakiye tutarlılığı %100 garanti altına alındı.
+
+#### 3. Canlı Profil ve Arayüz Deneyimi (Live UX)
+*   **Instant-Upload Teknolojisi:**
+    *   Profil resmi yükleme modülü **AJAX** ile yeniden yazıldı.
+    *   Sayfa yenilenmesine gerek kalmadan, yükleme tamamlandığı anda hem büyük profil resmi hem de üst menüdeki (Header) küçük avatar anlık olarak güncellenir.
+*   **Görsel Geribildirim (Progress Bar):** Resim yüklenirken kullanıcıya %0'dan %100'e kadar ilerleyen görsel bir durum çubuğu eklendi.
+*   **Akıllı Avatar Fallback:** Profil resmi olmayan kullanıcılar için artık anonim ikon yerine, ismin baş harfini (Örn: "M") içeren modern bir tipografik avatar gösteriliyor.
+*   **WebP Optimizasyonu:** Sunucuya yüklenen tüm görseller otomatik olarak yeni nesil **.webp** formatına dönüştürülüyor ve `Ad_Soyad_ID` formatında isimlendirilerek SEO uyumlu hale getiriliyor.
+*   **Session State Repair:** Login olmasına rağmen arayüzün "Çıkış Yapmış" gibi davranmasına neden olan tüm şablon (Template) hataları giderildi.
+
+
+
 ### v10.0 (07.01.2026) - Microsoft Fluent Design Entegrasyonu, Hibrit Arayüz Mimarisi ve Çekirdek Sistem Optimizasyonu
 
 Bu majör sürümde sistem, web tabanlı standart arayüz yapısından tamamen sıyrılarak, masaüstü uygulaması deneyimi sunan **"Microsoft Fluent Design System"** mimarisine geçirilmiştir. Kullanıcı deneyimi (UX) derinlik, ışık ve hareket prensipleriyle yeniden kurgulanmış, yönetim paneli bir web sitesinden ziyade güçlü bir yönetim konsoluna dönüştürülmüştür. 

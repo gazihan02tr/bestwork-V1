@@ -35,7 +35,8 @@ templates.env.filters["format_large_number"] = format_large_number
 # --- MIDDLEWARE: KULLANICI BİLGİSİNİ YÜKLE ---
 @app.middleware("http")
 async def add_context_to_request(request: Request, call_next):
-    user_id = request.cookies.get("user_id")
+    # JWT TOKEN KONTROLÜ
+    token = request.cookies.get("access_token")
     request.state.user = None
     request.state.cart_count = 0
     request.state.site_ayarlar = None
@@ -48,9 +49,32 @@ async def add_context_to_request(request: Request, call_next):
             site_ayarlar = models.SiteAyarlari() # Varsayılan
         request.state.site_ayarlar = site_ayarlar
 
-        # 2. Kullanıcı Bilgileri
+        # 2. Kullanıcı Bilgileri (JWT Çözümleme)
+        user_id = None
+        
+        # Debug Log
+        if token:
+             print(f"Token bulundu: {token[:10]}...") 
+        else:
+             pass # Token yok
+             
+        if token and token.startswith("Bearer "):
+            from app import utils # Circular import önlemek için burada
+            scheme, _, param = token.partition(" ")
+            payload = utils.decode_access_token(param)
+            if payload:
+                user_id = int(payload.get("sub"))
+                print(f"Token decode edildi: User ID {user_id}")
+            else:
+                print("Token decode edilemedi veya süresi dolmuş.")
+        
+        # Fallback: Eski user_id cookie varsa (geçici destek, production'da kaldırın)
+        if not user_id and request.cookies.get("user_id"):
+             # Güvensiz yöntemi devre dışı bıraktık.
+             pass
+
         if user_id:
-            user = db.query(models.Kullanici).filter(models.Kullanici.id == int(user_id)).first()
+            user = db.query(models.Kullanici).filter(models.Kullanici.id == user_id).first()
             if user:
                 request.state.user = user
                 

@@ -140,11 +140,15 @@ async def upload_profile_image(
         
     # Dosyayı oku ve WebP'ye çevirip kaydet
     try:
+        # Dosya ismini oluştur (Ad_Soyad_ID formatında)
+        safe_name = user.tam_ad.replace(" ", "_").replace("/", "").replace("\\", "")
+        filename_prefix = f"{safe_name}_{user.id}"
+        
         file_content = await file.read()
         new_filename = utils.process_image_to_webp(
             file_content, 
             upload_dir, 
-            f"user_{user.id}"
+            filename_prefix
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Resim işlenirken hata oluştu: {str(e)}")

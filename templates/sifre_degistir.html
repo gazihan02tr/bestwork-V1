@@ -74,7 +74,7 @@
             </div>
 
             <div class="flex items-center justify-end">
-                <a href="/panel/{{ request.cookies.get('user_id') }}" class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors mr-4">
+                <a href="/panel/{{ request.state.user.id }}" class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors mr-4">
                     İptal
                 </a>
                 <button type="submit" class="group flex items-center justify-center gap-2 py-3 px-6 border border-transparent text-sm font-medium rounded-full text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all shadow-md hover:shadow-lg active:scale-95">

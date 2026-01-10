@@ -11,10 +11,25 @@ def get_tree_data(user_id: int, request: Request, db: Session = Depends(get_db))
     if not request.state.user:
         raise HTTPException(status_code=401, detail="Giriş yapmalısınız")
     
+    # Kendi ağacını veya admin ise herkesi
+    # Admin kontrolü middleware'de yok, şimdilik sadece kendi.
     if request.state.user.id != user_id:
         raise HTTPException(status_code=403, detail="Yetkisiz erişim")
 
-    def build_node(u_id):
+    # Derinlik Limiti (Performans için)
+    MAX_DEPTH = 3 
+
+    def build_node(u_id, current_depth=0):
+        if current_depth > MAX_DEPTH:
+             # Daha derine inme, burada kes. Frontend'de "Daha Fazla..." butonu eklenebilir.
+             return {
+                 "name": "...", 
+                 "id": u_id, 
+                 "uye_no": "...", 
+                 "pv": "...", 
+                 "children": []
+             }
+
         user = db.query(models.Kullanici).filter(models.Kullanici.id == u_id).first()
         if not user:
             return None
@@ -29,8 +44,8 @@ def get_tree_data(user_id: int, request: Request, db: Session = Depends(get_db))
             "uye_no": user.uye_no,
             "pv": f"Sol: {user.sol_pv} | Sağ: {user.sag_pv}",
             "children": [
-                build_node(sol_uye.id) if sol_uye else {"name": "Boş", "id": None, "kol": "SOL", "parent": u_id},
-                build_node(sag_uye.id) if sag_uye else {"name": "Boş", "id": None, "kol": "SAG", "parent": u_id}
+                build_node(sol_uye.id, current_depth + 1) if sol_uye else {"name": "Boş", "id": None, "kol": "SOL", "parent": u_id},
+                build_node(sag_uye.id, current_depth + 1) if sag_uye else {"name": "Boş", "id": None, "kol": "SAG", "parent": u_id}
             ]
         }
     

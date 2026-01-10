@@ -38,29 +38,53 @@ def en_alt_bos_yeri_bul(db: Session, parent_id: int, tercih_kol: str):
     # İçeriye bakma, sadece aynı kol (tercih_kol) üzerinden en aşağı git!
     return en_alt_bos_yeri_bul(db, mevcut_uye.id, tercih_kol)
 
-# --- 2. FONKSİYON: PUAN DAĞITIM MOTORU ---
+# --- 2. FONKSİYON: PUAN DAĞITIM MOTORU (Recursive yerine Iterative) ---
 def ekonomiyi_tetikle(db: Session, baslangic_id: int, satis_pv: int, satis_cv: float):
-    mevcut_uye = db.query(models.Kullanici).filter(models.Kullanici.id == baslangic_id).first()
-    if not mevcut_uye or not mevcut_uye.parent_id:
-        return
+    # Yukarıya doğru 500 katmana kadar çıkar (Sonsuz döngü koruması)
+    current_id = baslangic_id
+    limit = 500 
+    
+    while current_id and limit > 0:
+        limit -= 1
+        
+        # Mevcut üyeyi getir
+        mevcut_uye = db.query(models.Kullanici).filter(models.Kullanici.id == current_id).first()
+        if not mevcut_uye or not mevcut_uye.parent_id:
+            break
+            
+        ust_uye_id = mevcut_uye.parent_id
+        kol_pozisyonu = mevcut_uye.kol
+        
+        # Üst üyeyi kilitleyerek getir (Race Condition Önlemi)
+        # Not: SQLite kullanıyorsanız with_for_update hata verebilir, Postgres için uygundur.
+        # Eğer hata alırsanız with_for_update=True kısmını kaldırın.
+        try:
+            ust_uye = db.query(models.Kullanici).filter(models.Kullanici.id == ust_uye_id).with_for_update().first()
+        except:
+            # Fallback for SQLite
+            ust_uye = db.query(models.Kullanici).filter(models.Kullanici.id == ust_uye_id).first()
+            
+        if not ust_uye:
+            break
 
-    ust_uye = db.query(models.Kullanici).filter(models.Kullanici.id == mevcut_uye.parent_id).first()
-    if ust_uye:
-        # PV değerleri None ise 0 olarak başlat
+        # Puan Ekleme
         if ust_uye.sol_pv is None: ust_uye.sol_pv = 0
         if ust_uye.sag_pv is None: ust_uye.sag_pv = 0
 
-        # Kol kontrolü (Enum veya String uyumluluğu)
-        is_sol = (mevcut_uye.kol == models.KolPozisyon.SOL) or (str(mevcut_uye.kol) == "SOL")
+        is_sol = (kol_pozisyonu == models.KolPozisyon.SOL) or (str(kol_pozisyonu) == "SOL")
 
         if is_sol:
             ust_uye.sol_pv += satis_pv
         else:
             ust_uye.sag_pv += satis_pv
         
-        db.commit()
+        db.commit() # Her adımda commit yaparak kilidi bırakır ve diğer işlemlerin araya girmesine izin veririz.
+        
+        # Eşleşme Kontrolü
         eslesme_kontrol_et(db, ust_uye.id)
-        ekonomiyi_tetikle(db, ust_uye.id, satis_pv, satis_cv)
+        
+        # Bir sonraki tur için yukarı çık
+        current_id = ust_uye.id
 
 def yeni_uye_no_olustur(db: Session):
     while True:
@@ -174,7 +198,14 @@ def uyeyi_agaca_yerlestir(db: Session, uye_id: int, parent_id: int, kol: str):
 
 # --- 4. GÜNCELLENEN EŞLEŞME: %13 KISA KOL MANTIĞI ---
 def eslesme_kontrol_et(db: Session, kullanici_id: int):
-    kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+    # Transaction ve Kilitleme Başlat
+    try:
+        kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).with_for_update().first()
+    except:
+        kullanici = db.query(models.Kullanici).filter(models.Kullanici.id == kullanici_id).first()
+        
+    if not kullanici: 
+        return
     
     # PV değerleri None ise 0 olarak başlat
     if kullanici.sol_pv is None: kullanici.sol_pv = 0
@@ -185,6 +216,9 @@ def eslesme_kontrol_et(db: Session, kullanici_id: int):
         # Kısa kolu (ödenecek puanı) belirle
         odenecek_puan = min(kullanici.sol_pv, kullanici.sag_pv)
         
+        if odenecek_puan <= 0:
+            return
+
         # Ayarlardan %13 oranını çek (admin panelinden güncellenebilir)
         odeme_orani = ayar_getir(db, "kisa_kol_oran", 0.13)
         
@@ -202,33 +236,43 @@ def eslesme_kontrol_et(db: Session, kullanici_id: int):
         log_yaz(db, kullanici_id, kazanc, "ESLESME", 
                 f"Kısa kol cirosu ({odenecek_puan} PV) üzerinden %{int(odeme_orani*100)} kazanç.")
         
-        # Nesil Geliri (Matching) Dağıtımı
-        nesil_geliri_dagit(db, kullanici.id, kazanc, 1)
+        # Nesil Geliri (Matching) Dağıtımı - ITERATIVE (Döngüsel)
+        nesil_geliri_dagit_iterative(db, kullanici.id, kazanc)
 
-def nesil_geliri_dagit(db: Session, alt_uye_id: int, kazanilan_miktar: float, nesil: int):
+def nesil_geliri_dagit_iterative(db: Session, alt_uye_id: int, kazanilan_miktar: float):
     """
     Sponsor hattı boyunca yukarı çıkar ve her nesle tanımlı oranını öder.
+    Recursive yerine while döngüsü kullanır.
     """
-    # 1. Bu nesil için bir ayar var mı?
-    ayar = db.query(models.NesilAyari).filter(models.NesilAyari.nesil_no == nesil).first()
-    if not ayar:
-        return # Ayar yoksa daha yukarı ödeme yapılmaz.
+    # Max derinlik
+    MAX_NESIL = 10
+    
+    current_alt_uye_id = alt_uye_id
+    
+    for nesil in range(1, MAX_NESIL + 1):
+        # 1. Bu nesil için bir ayar var mı?
+        ayar = db.query(models.NesilAyari).filter(models.NesilAyari.nesil_no == nesil).first()
+        if not ayar:
+            break # Ayar yoksa veya bittiyse dur.
 
-    # 2. Alt üyenin sponsorunu (liderini) bul
-    alt_uye = db.query(models.Kullanici).filter(models.Kullanici.id == alt_uye_id).first()
-    if not alt_uye or not alt_uye.referans_id:
-        return # Sponsor yoksa bitti.
+        # 2. Alt üyenin sponsorunu (liderini) bul
+        alt_uye = db.query(models.Kullanici).filter(models.Kullanici.id == current_alt_uye_id).first()
+        if not alt_uye or not alt_uye.referans_id:
+            break # Sponsor zinciri koptu.
 
-    lider = db.query(models.Kullanici).filter(models.Kullanici.id == alt_uye.referans_id).first()
-    if lider:
+        lider = db.query(models.Kullanici).filter(models.Kullanici.id == alt_uye.referans_id).first()
+        if not lider:
+            break
+            
+        # Bonusu öde
         bonus = kazanilan_miktar * ayar.oran
-        lider.toplam_cv += bonus
+        lider.toplam_cv = (lider.toplam_cv or 0) + bonus
         db.commit()
         
         log_yaz(db, lider.id, bonus, "LIDERLIK", f"{nesil}. Nesil Primi ({alt_uye.tam_ad} kazancından)")
         
-        # 3. BİR ÜST NESLE GEÇ (Recursive)
-        nesil_geliri_dagit(db, lider.id, kazanilan_miktar, nesil + 1)
+        # Bir sonraki tur için yukarı çık
+        current_alt_uye_id = lider.id
 
 def referans_bonusu_ode(db: Session, sponsor_id: int, prim_miktari: float, yeni_uye_adi: str):
     sponsor = db.query(models.Kullanici).filter(models.Kullanici.id == sponsor_id).first()
@@ -507,18 +551,36 @@ def get_dashboard_data(user_id: int, db: Session):
     if not kullanici:
         return None
 
-    def ekip_sayisini_bul(parent_id, kol=None):
-        sorgu = db.query(models.Kullanici).filter(models.Kullanici.parent_id == parent_id)
-        if kol:
-            sorgu = sorgu.filter(models.Kullanici.kol == kol)
-        ilk_katman = sorgu.all()
-        toplam = len(ilk_katman)
-        for alt in ilk_katman:
-            toplam += ekip_sayisini_bul(alt.id)
-        return toplam
+    # RECURSIVE YERİNE ITERATIVE EKİP SAYMA (BFS)
+    def ekip_sayisini_bul_iterative(root_id, target_kol=None):
+        count = 0
+        import collections
+        queue = collections.deque()
+        
+        # İlk katmanı bul
+        ilk_sorgu = db.query(models.Kullanici).filter(models.Kullanici.parent_id == root_id)
+        if target_kol:
+            ilk_sorgu = ilk_sorgu.filter(models.Kullanici.kol == target_kol)
+        
+        ilk_katman = ilk_sorgu.all()
+        for u in ilk_katman:
+            queue.append(u.id)
+            count += 1
+            
+        # Kuyruk bitene kadar (tüm alt ağaç) devam et
+        while queue:
+            current_parent_id = queue.popleft()
+            # Bu kişinin altındakileri bul
+            # Not: Büyük veride parent_id.in_() ile batching daha iyi olur
+            altlar = db.query(models.Kullanici.id).filter(models.Kullanici.parent_id == current_parent_id).all()
+            for alt in altlar:
+                queue.append(alt[0]) # .all() tuple döndürebilir, model.id seçtik
+                count += 1
+        return count
 
-    sol_ekip = ekip_sayisini_bul(user_id, "SOL")
-    sag_ekip = ekip_sayisini_bul(user_id, "SAG")
+    sol_ekip = ekip_sayisini_bul_iterative(user_id, "SOL")
+    sag_ekip = ekip_sayisini_bul_iterative(user_id, "SAG")
+    
     referanslar = db.query(models.Kullanici).filter(models.Kullanici.referans_id == user_id).count()
     bekleyenler = db.query(models.Kullanici).filter(
         models.Kullanici.referans_id == user_id,

@@ -65,12 +65,24 @@
                         </div>
                         
                         <!-- Upload Overlay -->
-                        <div class="absolute inset-0 bg-black/40 hover:bg-black/60 flex items-center justify-center transition-colors cursor-pointer z-10" onclick="document.getElementById('profileUploadInput').click()">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300 cursor-pointer z-10" onclick="document.getElementById('profileUploadInput').click()">
                             <span class="material-symbols-outlined text-white/90 text-3xl">photo_camera</span>
                         </div>
                     </div>
                     <input type="file" id="profileUploadInput" class="hidden" accept="image/*" onchange="uploadProfileImage(this)">
                 </div>
+                
+                <!-- Progress Bar -->
+                <div id="uploadProgressContainer" class="hidden w-48 mx-auto mt-4 transition-all duration-300">
+                    <div class="flex justify-between text-[10px] mb-1.5">
+                        <span class="text-primary font-bold tracking-tight">Profil resmi güncelleniyor</span>
+                        <span id="uploadPercentage" class="text-primary font-bold">0%</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden border border-outline-variant/10">
+                        <div id="uploadProgressBar" class="h-full bg-primary transition-all duration-300 w-0 rounded-full"></div>
+                    </div>
+                </div>
+
                 <h2 class="mt-4 text-xl font-semibold">{{ ozet.tam_ad }}</h2>
                 <p class="text-sm opacity-80">{{ 'Distribütör' if ozet.rutbe == 'Distributor' else ozet.rutbe }}</p>
             </div>
@@ -249,42 +261,86 @@ async function uploadProfileImage(input) {
         const formData = new FormData();
         formData.append('file', input.files[0]);
 
+        // Dashboard elemanları
+        const imgElement = document.getElementById('profileImage');
+        const initialsDiv = document.getElementById('profileInitials');
+        const progressContainer = document.getElementById('uploadProgressContainer');
+        const progressBar = document.getElementById('uploadProgressBar');
+        const percentageText = document.getElementById('uploadPercentage');
+        
+        // Header elemanları
+        const headerImg = document.getElementById('headerProfileImage');
+        const headerInitials = document.getElementById('headerProfileInitials');
+
+        const originalSrc = imgElement.src;
+        
+        // UI Reset ve Gösterim
+        imgElement.style.opacity = '0.5';
+        progressContainer.classList.remove('hidden');
+        progressBar.style.width = '0%';
+        percentageText.textContent = '0%';
+
         try {
-            // Loading efekti
-            const imgElement = document.getElementById('profileImage');
-            const originalSrc = imgElement.src;
-            imgElement.style.opacity = '0.5';
+            const xhr = new XMLHttpRequest();
             
-            const response = await fetch('/api/upload-profile-image', {
-                method: 'POST',
-                body: formData
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percentComplete + '%';
+                    percentageText.textContent = percentComplete + '%';
+                }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    // Cache busting için timestamp ekle
-                    imgElement.src = data.image_url + '?t=' + new Date().getTime();
-                    // Resmi göster, baş harfleri gizle
-                    imgElement.classList.remove('hidden');
-                    const initialsDiv = document.getElementById('profileInitials');
-                    if (initialsDiv) {
-                        initialsDiv.classList.add('hidden');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    
+                    if (data.success) {
+                        const newSrc = data.image_url + '?t=' + new Date().getTime();
+                        
+                        // 1. Dashboard Resmini Güncelle
+                        imgElement.src = newSrc;
+                        imgElement.classList.remove('hidden'); // Resmi göster
+                        if (initialsDiv) initialsDiv.classList.add('hidden'); // Harfi gizle
+                        
+                        // 2. Header Resmini Güncelle
+                        if (headerImg) {
+                            headerImg.src = newSrc;
+                            headerImg.style.display = 'block'; // onerror gizlemiş olabilir, aç
+                            headerImg.classList.remove('hidden');
+                            if (headerInitials) headerInitials.classList.add('hidden');
+                        } 
+                    } else {
+                        alert('Hata: ' + (data.detail || 'Bilinmeyen hata'));
+                        imgElement.src = originalSrc;
                     }
                 } else {
-                    alert('Resim yüklenirken bir hata oluştu.');
+                    alert('Yükleme başarısız oldu.');
                     imgElement.src = originalSrc;
                 }
-            } else {
-                alert('Sunucu hatası: ' + response.statusText);
+                
+                // Temizlik
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    imgElement.style.opacity = '1';
+                }, 1000); // %100'ü kullanıcı görsün diye az bekle
+            };
+
+            xhr.onerror = function() {
+                alert('Ağ hatası oluştu.');
                 imgElement.src = originalSrc;
-            }
+                imgElement.style.opacity = '1';
+                progressContainer.classList.add('hidden');
+            };
+
+            xhr.open('POST', '/api/upload-profile-image', true);
+            xhr.send(formData);
+
         } catch (error) {
             console.error('Hata:', error);
-            alert('Bir hata oluştu.');
-            document.getElementById('profileImage').style.opacity = '1';
-        } finally {
-            document.getElementById('profileImage').style.opacity = '1';
+            imgElement.src = originalSrc;
+            imgElement.style.opacity = '1';
+            progressContainer.classList.add('hidden');
         }
     }
 }

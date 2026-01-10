@@ -30,21 +30,42 @@ def giris_yap(
             "hata": "Hatalı kullanıcı adı veya şifre!"
         })
     
-    # Başarılı giriş
+    # Başarılı giriş - JWT Oluştur
+    access_token_expires = utils.timedelta(minutes=utils.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = utils.create_access_token(
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
+    )
+    
     response = RedirectResponse(url=f"/panel/{user.id}", status_code=303)
-    response.set_cookie(key="user_id", value=str(user.id))
+    
+    # Secure Cookie
+    # NOT: 127.0.0.1 üzerinde secure=True çalışmayabilir. Şimdilik False.
+    # Ayrıca samesite="Lax" önemlidir.
+    response.set_cookie(
+        key="access_token", 
+        value=f"Bearer {access_token}", 
+        httponly=True,   
+        samesite="lax",  
+        secure=False # Localhost'ta HTTPS yoksa False olmalı
+    )
+    # Eski cookie'yi temizle
+    response.delete_cookie("user_id")
+
+    # Debug için
+    print(f"Giriş Başarılı: User {user.id}, Token oluşturuldu.")
+    
     return response
 
 @router.get("/cikis")
 def cikis_yap():
     response = RedirectResponse(url="/giris", status_code=303)
-    response.delete_cookie("user_id")
+    response.delete_cookie("access_token")
+    response.delete_cookie("user_id") # Eski cookie varsa sil
     return response
 
 @router.get("/sifre-degistir", response_class=HTMLResponse)
 def sifre_degistir_sayfasi(request: Request):
-    user_id = request.cookies.get("user_id")
-    if not user_id:
+    if not hasattr(request.state, "user") or not request.state.user:
         return RedirectResponse(url="/giris", status_code=303)
     return templates.TemplateResponse("sifre_degistir.html", {"request": request})
 
@@ -56,11 +77,10 @@ def sifre_degistir_islem(
     yeni_sifre_tekrar: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    user_id = request.cookies.get("user_id")
-    if not user_id:
+    if not hasattr(request.state, "user") or not request.state.user:
         return RedirectResponse(url="/giris", status_code=303)
     
-    user = db.query(models.Kullanici).filter(models.Kullanici.id == int(user_id)).first()
+    user = request.state.user
     
     if not user or not utils.verify_password(mevcut_sifre, user.sifre):
         return templates.TemplateResponse("sifre_degistir.html", {

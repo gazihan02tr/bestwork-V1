@@ -1,5 +1,14 @@
 # --- SİSTEM PARAMETRELERİ ---
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY", "gizli_anahtar_degistirin_lutfen_cok_gizli_olmali_bestwork_2026")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+
 AYARLAR = {
     # Bir üye kayıt olduğunda yukarı giden puanlar
     "KAYIT_PV": 100,

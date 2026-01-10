@@ -22,15 +22,38 @@ async def bestsoft_login_action(
     if not admin or admin.sifre != password:
         return templates.TemplateResponse("bestsoft_login.html", {"request": request, "error": "Geçersiz Kullanıcı Adı veya Şifre"})
     
+    # Admin JWT Token
+    from app import utils
+    access_token = utils.create_access_token(
+        data={"sub": f"admin:{username}"}
+    )
+
     response = RedirectResponse(url="/admin/dashboard", status_code=303)
-    response.set_cookie(key="admin_user", value=username)
+    response.set_cookie(
+        key="admin_token", 
+        value=f"Bearer {access_token}",
+        httponly=True,
+        secure=False
+    )
     return response
 
+# Dependency veya Yardımcı Fonksiyon
+def get_current_admin(request: Request):
+    token = request.cookies.get("admin_token")
+    if token and token.startswith("Bearer "):
+        from app import utils
+        _, _, param = token.partition(" ")
+        payload = utils.decode_access_token(param)
+        if payload:
+            sub = payload.get("sub")
+            if sub and sub.startswith("admin:"):
+                return sub.split(":")[1]
+    return None
 
 # ADMIN DASHBOARD (YENİ ANASAYFA)
 @router.get("/admin/dashboard", response_class=HTMLResponse)
 def admin_dashboard(request: Request, db: Session = Depends(get_db)):
-    admin_user = request.cookies.get("admin_user")
+    admin_user = get_current_admin(request)
     if not admin_user:
         return RedirectResponse(url="/bestsoft", status_code=303)
     
@@ -40,7 +63,7 @@ def admin_dashboard(request: Request, db: Session = Depends(get_db)):
 # ADMIN KONTROL SAYFASI
 @router.get("/admin/kontrol", response_class=HTMLResponse)
 def admin_ayar_sayfasi(request: Request, db: Session = Depends(get_db)):
-    admin_user = request.cookies.get("admin_user")
+    admin_user = get_current_admin(request)
     if not admin_user:
         return RedirectResponse(url="/bestsoft", status_code=303)
     
