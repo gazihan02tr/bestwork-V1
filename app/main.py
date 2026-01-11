@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from . import models
 from .database import SessionLocal, engine
 from .routers import auth, mlm, shop, general, admin, dashboard
@@ -31,6 +32,13 @@ def format_large_number(value):
         return f"{num:.2f}"
 
 templates.env.filters["format_large_number"] = format_large_number
+
+# --- EXCEPTION HANDLERS ---
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 # --- MIDDLEWARE: KULLANICI BİLGİSİNİ YÜKLE ---
 @app.middleware("http")

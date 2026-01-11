@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firma Bilgileri - BestSoft</title>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        md: {
+                            primary: '#6750A4',
+                            onPrimary: '#FFFFFF',
+                            primaryContainer: '#EADDFF',
+                            onPrimaryContainer: '#21005D',
+                            secondary: '#625B71',
+                            secondaryContainer: '#E8DEF8',
+                            onSecondaryContainer: '#1D192B',
+                            tertiary: '#7D5260',
+                            tertiaryContainer: '#FFD8E4',
+                            onTertiaryContainer: '#31111D',
+                            surface: '#FEF7FF',
+                            surfaceDim: '#DED8E1',
+                            surfaceBright: '#FEF7FF',
+                            onSurface: '#1D1B20',
+                            onSurfaceVariant: '#49454F',
+                            outline: '#79747E',
+                            outlineVariant: '#CAC4D0',
+                        }
+                    },
+                    boxShadow: {
+                        'elevation-1': '0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+                        'elevation-2': '0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#F3EDF7] min-h-screen flex flex-col m-0 text-md-onSurface" x-data="{ mobileMenuOpen: false }">
+    <!-- Top Navigation Bar -->
+    <header class="bg-md-surface px-4 md:px-6 h-[72px] shadow-sm flex items-center justify-between sticky top-0 z-50">
+        <!-- Logo Section -->
+        <div class="flex items-center gap-3">
+             <div class="w-10 h-10 bg-md-primaryContainer text-md-onPrimaryContainer rounded-full flex items-center justify-center">
+                 <span class="material-symbols-outlined">diamond</span>
+             </div>
+             <span class="text-[22px] font-normal text-md-onSurface hidden sm:block">BestSoft</span>
+        </div>
+        <!-- Desktop Horizontal Menu -->
+        <nav class="hidden lg:flex items-center bg-md-surfaceDim/30 rounded-full px-2 py-1 gap-1">
+            <a href="/bestsoft/dashboard" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                <span>Anasayfa</span>
+            </a>
+            <a href="/admin/ayarlar" class="h-[48px] bg-md-secondaryContainer text-md-onSecondaryContainer rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3">
+            <a href="/admin/ayarlar" class="w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center text-md-onSurfaceVariant transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content Wrapper -->
+    <main class="flex-1 flex flex-col w-full max-w-[800px] mx-auto p-4 md:p-6 lg:p-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center gap-2 text-md-onSurfaceVariant mb-2 text-sm">
+                <a href="/admin/ayarlar" class="hover:underline">Ayarlar</a>
+                <span>/</span>
+                <span>Firma Bilgileri</span>
+            </div>
+            <h1 class="text-[32px] md:text-[36px] font-normal text-md-onSurface">Firma Bilgileri</h1>
+            <p class="text-md-onSurfaceVariant text-[16px] max-w-2xl mt-2">
+                Kurumsal kimlik bilgilerini, footer alanındaki metinleri ve iletişim detaylarını buradan yönetebilirsiniz.
+            </p>
+        </div>
+
+        {% if request.query_params.get('success') %}
+        <div class="mb-6 p-4 bg-green-100 text-green-700 rounded-xl border border-green-200 flex items-center gap-3">
+            <span class="material-symbols-outlined">check_circle</span>
+            <span>Firma bilgileri başarıyla güncellendi.</span>
+        </div>
+        {% endif %}
+
+        <!-- Content Area -->
+        <form method="POST" action="/admin/ayarlar/firma" class="grid grid-cols-1 gap-6">
+            
+            <!-- Footer Ayarları Kartı -->
+            <div class="bg-md-surface rounded-[24px] p-6 border border-md-outlineVariant/20 shadow-sm flex flex-col gap-6">
+                 <h2 class="text-[20px] font-medium text-md-onSurface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-600">vertical_split</span>
+                    Footer (Alt Bilgi) Ayarları
+                 </h2>
+                 
+                 <div class="space-y-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[14px] font-medium text-md-onSurfaceVariant">Footer Başlığı</label>
+                        <input type="text" name="footer_baslik" value="{{ ayarlar.footer_baslik if ayarlar.footer_baslik else 'BestWork' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="Örn: BestWork">
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[14px] font-medium text-md-onSurfaceVariant">Footer Açıklama Metni</label>
+                        <textarea name="footer_aciklama" class="h-[100px] p-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors resize-none" placeholder="Kısa bir firma tanıtımı...">{{ ayarlar.footer_aciklama if ayarlar.footer_aciklama else '' }}</textarea>
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[14px] font-medium text-md-onSurfaceVariant">Copyright Metni</label>
+                        <input type="text" name="footer_copyright" value="{{ ayarlar.footer_copyright if ayarlar.footer_copyright else '' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="© 2026 BestWork. Tüm hakları saklıdır.">
+                    </div>
+                 </div>
+            </div>
+
+            <!-- İletişim Bilgileri Kartı -->
+            <div class="bg-md-surface rounded-[24px] p-6 border border-md-outlineVariant/20 shadow-sm flex flex-col gap-6">
+                <h2 class="text-[20px] font-medium text-md-onSurface flex items-center gap-2">
+                   <span class="material-symbols-outlined text-purple-600">contact_support</span>
+                   Kurumsal İletişim Bilgileri
+                </h2>
+                
+                <div class="space-y-4">
+                   <div class="flex flex-col gap-1">
+                       <label class="text-[14px] font-medium text-md-onSurfaceVariant">Açık Adres</label>
+                       <textarea name="iletisim_adres" class="h-[100px] p-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors resize-none" placeholder="Şirket açık adresi...">{{ ayarlar.iletisim_adres if ayarlar.iletisim_adres else '' }}</textarea>
+                   </div>
+
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div class="flex flex-col gap-1">
+                           <label class="text-[14px] font-medium text-md-onSurfaceVariant">E-posta Adresi</label>
+                           <input type="email" name="iletisim_email" value="{{ ayarlar.iletisim_email if ayarlar.iletisim_email else '' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="info@bestwork.com">
+                       </div>
+
+                       <div class="flex flex-col gap-1">
+                           <label class="text-[14px] font-medium text-md-onSurfaceVariant">Telefon Numarası</label>
+                           <input type="text" name="iletisim_telefon" value="{{ ayarlar.iletisim_telefon if ayarlar.iletisim_telefon else '' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="+90 555 123 45 67">
+                       </div>
+                   </div>
+
+                   <div class="flex flex-col gap-1">
+                       <label class="text-[14px] font-medium text-md-onSurfaceVariant">Google Maps İframe Kodu</label>
+                       <textarea name="iletisim_harita" class="h-[100px] p-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors resize-none font-mono text-xs" placeholder='<iframe src="https://www.google.com/maps/embed?..."></iframe>'>{{ ayarlar.iletisim_harita if ayarlar.iletisim_harita else '' }}</textarea>
+                       <p class="text-[12px] text-md-onSurfaceVariant/70 px-4">Google Haritalar'da "Paylaş > Harita Yerleştir" kısmından alacağınız iframe kodunu buraya yapıştırın.</p>
+                   </div>
+                </div>
+           </div>
+
+            <!-- Sosyal Medya Ayarları Kartı -->
+            <div class="bg-md-surface rounded-[24px] p-6 border border-md-outlineVariant/20 shadow-sm flex flex-col gap-6">
+                 <h2 class="text-[20px] font-medium text-md-onSurface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-600">share</span>
+                    Sosyal Medya Linkleri
+                 </h2>
+                 
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[14px] font-medium text-md-onSurfaceVariant">Facebook</label>
+                        <input type="text" name="sosyal_facebook" value="{{ ayarlar.sosyal_facebook if ayarlar.sosyal_facebook else '' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="https://facebook.com/...">
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[14px] font-medium text-md-onSurfaceVariant">Twitter (X)</label>
+                        <input type="text" name="sosyal_twitter" value="{{ ayarlar.sosyal_twitter if ayarlar.sosyal_twitter else '' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="https://twitter.com/...">
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[14px] font-medium text-md-onSurfaceVariant">Instagram</label>
+                        <input type="text" name="sosyal_instagram" value="{{ ayarlar.sosyal_instagram if ayarlar.sosyal_instagram else '' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="https://instagram.com/...">
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[14px] font-medium text-md-onSurfaceVariant">LinkedIn</label>
+                        <input type="text" name="sosyal_linkedin" value="{{ ayarlar.sosyal_linkedin if ayarlar.sosyal_linkedin else '' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="https://linkedin.com/in/...">
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[14px] font-medium text-md-onSurfaceVariant">Youtube</label>
+                        <input type="text" name="sosyal_youtube" value="{{ ayarlar.sosyal_youtube if ayarlar.sosyal_youtube else '' }}" class="h-[56px] px-4 rounded-t-lg bg-md-surfaceDim/50 border-b border-md-outlineVariant hover:bg-md-surfaceDim focus:border-b-2 focus:border-md-primary outline-none transition-colors" placeholder="https://youtube.com/...">
+                    </div>
+                 </div>
+            </div>
+
+
+            <!-- Save Button -->
+            <div class="flex justify-end">
+                <button type="submit" class="h-[40px] px-6 bg-md-primary text-md-onPrimary rounded-full text-[14px] font-medium hover:shadow-elevation-2 active:shadow-none transition-shadow flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    <span>Kaydet</span>
+                </button>
+            </div>
+        </form>
+
+    </main>
+
+</body>
+</html>

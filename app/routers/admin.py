@@ -146,18 +146,6 @@ def admin_ayarlar_page(request: Request, db: Session = Depends(get_db)):
     current_version = get_system_version()
     remote_version = None
 
-    # Try to get remote version to see if there is a version mismatch, 
-    # even if git status doesn't explicitly say "behind" (e.g. local changes state)
-    try:
-        remote_v = get_remote_system_version()
-        if remote_v:
-            remote_version = remote_v
-            # If we see a newer version on remote, consider update available for UI purposes
-            if remote_version != current_version:
-                 update_available = True
-    except:
-        pass
-    
     return templates.TemplateResponse("admin_ayarlar.html", {
         "request": request, 
         "update_available": update_available,
@@ -322,6 +310,69 @@ def admin_analytics_update(
     db.commit()
     
     return RedirectResponse(url="/admin/ayarlar/analytics?success=true", status_code=303)
+
+# --- FİRMA BİLGİLERİ AYARLARI ---
+
+@router.get("/admin/ayarlar/firma", response_class=HTMLResponse)
+def admin_firma_page(request: Request, db: Session = Depends(get_db)):
+    # Check admin auth
+    admin_user = get_current_admin(request)
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+        
+    ayarlar = db.query(models.SiteAyarlari).first()
+    if not ayarlar:
+        ayarlar = models.SiteAyarlari()
+        db.add(ayarlar)
+        db.commit()
+        db.refresh(ayarlar)
+        
+    return templates.TemplateResponse("admin_firma.html", {"request": request, "ayarlar": ayarlar})
+
+@router.post("/admin/ayarlar/firma")
+def admin_firma_update(
+    request: Request,
+    footer_baslik: str = Form(""),
+    footer_aciklama: str = Form(""),
+    footer_copyright: str = Form(""),
+    iletisim_adres: str = Form(""),
+    iletisim_email: str = Form(""),
+    iletisim_telefon: str = Form(""),
+    iletisim_harita: str = Form(""),
+    sosyal_facebook: str = Form(""),
+    sosyal_twitter: str = Form(""),
+    sosyal_instagram: str = Form(""),
+    sosyal_linkedin: str = Form(""),
+    sosyal_youtube: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    admin_user = get_current_admin(request)
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+        
+    ayarlar = db.query(models.SiteAyarlari).first()
+    if not ayarlar:
+        ayarlar = models.SiteAyarlari()
+        db.add(ayarlar)
+    
+    ayarlar.footer_baslik = footer_baslik
+    ayarlar.footer_aciklama = footer_aciklama
+    ayarlar.footer_copyright = footer_copyright
+    ayarlar.iletisim_adres = iletisim_adres
+    ayarlar.iletisim_email = iletisim_email
+    ayarlar.iletisim_telefon = iletisim_telefon
+    ayarlar.iletisim_harita = iletisim_harita
+    ayarlar.sosyal_facebook = sosyal_facebook
+    ayarlar.sosyal_twitter = sosyal_twitter
+    ayarlar.sosyal_instagram = sosyal_instagram
+    ayarlar.sosyal_linkedin = sosyal_linkedin
+    ayarlar.sosyal_youtube = sosyal_youtube
+    
+
+    db.commit()
+    
+    # Redirect back with success message
+    return RedirectResponse(url="/admin/ayarlar/firma?success=true", status_code=303)
 
 # --- SİSTEM GÜNCELLEME ---
 @router.get("/admin/ayarlar/guncelleme", response_class=HTMLResponse)

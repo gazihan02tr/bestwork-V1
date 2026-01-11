@@ -24,8 +24,9 @@ def kurumsal_sayfasi(request: Request):
 
 # --- İLETİŞİM SAYFASI ---
 @router.get("/iletisim", response_class=HTMLResponse)
-async def iletisim_sayfasi(request: Request):
-    return templates.TemplateResponse("iletisim.html", {"request": request})
+async def iletisim_sayfasi(request: Request, db: Session = Depends(get_db)):
+    ayarlar = db.query(models.SiteAyarlari).first()
+    return templates.TemplateResponse("iletisim.html", {"request": request, "ayarlar": ayarlar})
 
 @router.post("/iletisim", response_class=HTMLResponse)
 async def iletisim_formu_gonder(
@@ -43,9 +44,11 @@ async def iletisim_formu_gonder(
         mesaj=mesaj
     )
     kayit = crud.create_iletisim_mesaji(db, yeni_mesaj)
+    ayarlar = db.query(models.SiteAyarlari).first()
     return templates.TemplateResponse("iletisim.html", {
         "request": request,
-        "basari_mesaji": f"Mesajınız başarıyla alındı. Takip Numaranız: {kayit.takip_no}"
+        "basari_mesaji": f"Mesajınız başarıyla alındı. Takip Numaranız: {kayit.takip_no}",
+        "ayarlar": ayarlar
     })
 
 # --- VARİS İŞLEMLERİ ---

@@ -118,6 +118,15 @@ class SiteAyarlari(Base):
     iletisim_adres = Column(Text, nullable=True)
     iletisim_email = Column(String, nullable=True)
     iletisim_telefon = Column(String, nullable=True)
+    iletisim_harita = Column(Text, nullable=True)
+
+    # Sosyal Medya
+    sosyal_facebook = Column(String, nullable=True)
+    sosyal_twitter = Column(String, nullable=True)
+    sosyal_instagram = Column(String, nullable=True)
+    sosyal_linkedin = Column(String, nullable=True)
+    sosyal_youtube = Column(String, nullable=True)
+
 
 class Varis(Base):
     __tablename__ = "varisler"

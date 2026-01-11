@@ -639,42 +639,43 @@
                         {{ request.state.site_ayarlar.footer_aciklama if request.state.site_ayarlar else 'Premium alışveriş deneyimini yeniden tanımlıyoruz. Kalite, güven ve estetik bir arada.' }}
                     </p>
                     <div class="flex gap-4">
-                        <a href="#" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-[#0077b5] hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+                        <!-- Facebook -->
+                        {% if request.state.site_ayarlar and request.state.site_ayarlar.sosyal_facebook %}
+                        <a href="{{ request.state.site_ayarlar.sosyal_facebook }}" target="_blank" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-[#1877F2] hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+                            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.433-4.669 1.265 0 2.506.095 3.768.17v4.062h-2.585c-1.465 0-1.758.696-1.758 1.725v2.263h4.493l-.587 3.47h-3.906v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        </a>
+                        {% endif %}
+
+                        <!-- LinkedIn -->
+                        {% if request.state.site_ayarlar and request.state.site_ayarlar.sosyal_linkedin %}
+                        <a href="{{ request.state.site_ayarlar.sosyal_linkedin }}" target="_blank" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-[#0077b5] hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
                             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
                         </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-black hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+                        {% endif %}
+
+                        <!-- Twitter / X -->
+                        {% if request.state.site_ayarlar and request.state.site_ayarlar.sosyal_twitter %}
+                        <a href="{{ request.state.site_ayarlar.sosyal_twitter }}" target="_blank" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-black hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
                             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                         </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-[#E1306C] hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+                        {% endif %}
+
+                        <!-- Instagram -->
+                        {% if request.state.site_ayarlar and request.state.site_ayarlar.sosyal_instagram %}
+                        <a href="{{ request.state.site_ayarlar.sosyal_instagram }}" target="_blank" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-[#E1306C] hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
                             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                         </a>
-                        <a href="#" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-[#FF0000] hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+                        {% endif %}
+
+                        <!-- Youtube -->
+                        {% if request.state.site_ayarlar and request.state.site_ayarlar.sosyal_youtube %}
+                        <a href="{{ request.state.site_ayarlar.sosyal_youtube }}" target="_blank" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:bg-[#FF0000] hover:text-white transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
                             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
                         </a>
+                        {% endif %}
                     </div>
                 </div>
 
-                <!-- Links -->
-                <div>
-                    <h4 class="font-display font-bold text-lg mb-6">Kurumsal</h4>
-                    <ul class="space-y-4 text-on-surface-variant">
-                        <li><a href="/kurumsal" class="hover:text-primary transition-colors">Hakkımızda</a></li>
-                        <li><a href="#" class="hover:text-primary transition-colors">Kariyer</a></li>
-                        <li><a href="#" class="hover:text-primary transition-colors">Sürdürülebilirlik</a></li>
-                        <li><a href="#" class="hover:text-primary transition-colors">Basın</a></li>
-                    </ul>
-                </div>
-
-                <!-- Links -->
-                <div>
-                    <h4 class="font-display font-bold text-lg mb-6">Müşteri Hizmetleri</h4>
-                    <ul class="space-y-4 text-on-surface-variant">
-                        <li><a href="#" class="hover:text-primary transition-colors">İletişim</a></li>
-                        <li><a href="#" class="hover:text-primary transition-colors">Sıkça Sorulan Sorular</a></li>
-                        <li><a href="#" class="hover:text-primary transition-colors">Kargo ve İade</a></li>
-                        <li><a href="#" class="hover:text-primary transition-colors">Gizlilik Politikası</a></li>
-                    </ul>
-                </div>
 
                 <!-- Newsletter -->
                 <div>
