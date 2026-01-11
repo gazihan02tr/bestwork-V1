@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 from . import models, schemas
 from .utils import RUTBE_GEREKSINIMLERI
 from fastapi import HTTPException
@@ -19,29 +19,74 @@ def log_yaz(db: Session, user_id: int, miktar: float, tip: str, mesaj: str):
     db.add(yeni_log)
     db.commit()
 
-# --- 1. FONKSİYON: BOŞ YER BULUCU (ITERATIVE) ---
+# --- PERFORMANS ODAKLI YENİ FONKSİYONLAR (CTE KULLANIMI) ---
+
+def ekip_sayisini_bul_cte(db: Session, root_id: int, target_kol: str):
+    """
+    Bir üyenin belirtilen kolundaki tüm alt ekip sayısını,
+    PostgreSQL'in recursive CTE özelliğini kullanarak TEK BİR sorguda hesaplar.
+    Bu, yüzlerce hatta binlerce sorguyu önler.
+    """
+    sql = text("""
+        WITH RECURSIVE alt_uyeler AS (
+            -- Başlangıç noktası: root_id'nin doğrudan altındaki, istenen koldaki üyeler
+            SELECT id FROM kullanicilar WHERE parent_id = :root_id AND kol = :target_kol
+
+            UNION ALL
+
+            -- Özyineli adım: Önceki adımda bulunan üyelerin altındakileri ekle
+            SELECT k.id FROM kullanicilar k
+            INNER JOIN alt_uyeler au ON k.parent_id = au.id
+        )
+        SELECT count(*) FROM alt_uyeler;
+    """)
+    
+    result = db.execute(sql, {"root_id": root_id, "target_kol": target_kol}).scalar_one()
+    return result if result is not None else 0
+
+def en_alt_bos_yeri_bul_cte(db: Session, parent_id: int, tercih_kol: str):
+    """
+    Bir kolun en dış hattındaki en son üyeyi (boş yerin üstündeki parent),
+    PostgreSQL'in recursive CTE özelliğini kullanarak TEK BİR sorguda bulur.
+    Bu, ağaç derinliği kadar sorgu yapmayı önler.
+    """
+    sql = text("""
+        WITH RECURSIVE kol_uyeleri AS (
+            -- Başlangıç: parent_id'nin altındaki tercih edilen koldaki ilk üye
+            SELECT id, 1 as derinlik
+            FROM kullanicilar
+            WHERE parent_id = :parent_id AND kol = :tercih_kol
+
+            UNION ALL
+
+            -- Özyineli Adım: Zincirdeki bir sonraki üyeyi bul (sadece dış hat)
+            SELECT k.id, ku.derinlik + 1
+            FROM kullanicilar k
+            INNER JOIN kol_uyeleri ku ON k.parent_id = ku.id AND k.kol = :tercih_kol
+        )
+        -- En sondakini (en derin olanı) bul
+        SELECT id FROM kol_uyeleri
+        ORDER BY derinlik DESC
+        LIMIT 1;
+    """)
+
+    en_son_uye_id = db.execute(sql, {"parent_id": parent_id, "tercih_kol": tercih_kol}).scalar_one_or_none()
+
+    # Eğer o kolda hiç üye yoksa, başlangıç parent'ı bizim boş yerimizdir.
+    # Eğer varsa, bulduğumuz en son üye, yeni parent'ımızdır.
+    return en_son_uye_id if en_son_uye_id is not None else parent_id
+
+
+# --- 1. FONKSİYON: BOŞ YER BULUCU (ARTIK CTE KULLANIYOR) ---
 def en_alt_bos_yeri_bul(db: Session, parent_id: int, tercih_kol: str):
     """
     Kullanıcı sadece seçtiği kolun (SOL veya SAĞ) en dış hattına kayıt yapabilir.
-    İç kollara (inner leg) kayıt yapılmasına izin vermez.
-    Recursive yapıdan While döngüsüne dönüştürülerek Stack Overflow riski sıfırlandı.
+    Bu fonksiyon artık verimlilik için PostgreSQL CTE sorgusu kullanmaktadır.
     """
-    current_parent_id = parent_id
-    
-    while True:
-        # Mevcut parent'ın altında, seçilen kolda (SOL veya SAĞ) biri var mı?
-        mevcut_uye = db.query(models.Kullanici).filter(
-            models.Kullanici.parent_id == current_parent_id,
-            models.Kullanici.kol == tercih_kol
-        ).first()
-
-        if not mevcut_uye:
-            # Eğer o kol boşsa, burası kayıt için doğru yerdir.
-            return current_parent_id
-        
-        # EĞER DOLUYSA: 
-        # Bir alt basamağa geç ve döngüye devam et
-        current_parent_id = mevcut_uye.id
+    # Not: en_alt_bos_yeri_bul_cte fonksiyonu, boş yerin parent'ı olacak
+    # en son ID'yi döndürür. Eğer kolda hiç kimse yoksa, orijinal parent_id'yi
+    # geri döndürür, bu da tam olarak istediğimiz davranıştır.
+    return en_alt_bos_yeri_bul_cte(db, parent_id, tercih_kol)
 
 def rutbe_guncelle(db: Session, kullanici: models.Kullanici):
     """
@@ -590,35 +635,9 @@ def get_dashboard_data(user_id: int, db: Session):
     if not kullanici:
         return None
 
-    # RECURSIVE YERİNE ITERATIVE EKİP SAYMA (BFS)
-    def ekip_sayisini_bul_iterative(root_id, target_kol=None):
-        count = 0
-        import collections
-        queue = collections.deque()
-        
-        # İlk katmanı bul
-        ilk_sorgu = db.query(models.Kullanici).filter(models.Kullanici.parent_id == root_id)
-        if target_kol:
-            ilk_sorgu = ilk_sorgu.filter(models.Kullanici.kol == target_kol)
-        
-        ilk_katman = ilk_sorgu.all()
-        for u in ilk_katman:
-            queue.append(u.id)
-            count += 1
-            
-        # Kuyruk bitene kadar (tüm alt ağaç) devam et
-        while queue:
-            current_parent_id = queue.popleft()
-            # Bu kişinin altındakileri bul
-            # Not: Büyük veride parent_id.in_() ile batching daha iyi olur
-            altlar = db.query(models.Kullanici.id).filter(models.Kullanici.parent_id == current_parent_id).all()
-            for alt in altlar:
-                queue.append(alt[0]) # .all() tuple döndürebilir, model.id seçtik
-                count += 1
-        return count
-
-    sol_ekip = ekip_sayisini_bul_iterative(user_id, "SOL")
-    sag_ekip = ekip_sayisini_bul_iterative(user_id, "SAG")
+    # YÜKSEK PERFORMANSLI SORGULAMA (CTE)
+    sol_ekip = ekip_sayisini_bul_cte(db, user_id, "SOL")
+    sag_ekip = ekip_sayisini_bul_cte(db, user_id, "SAG")
     
     referanslar = db.query(models.Kullanici).filter(models.Kullanici.referans_id == user_id).count()
     bekleyenler = db.query(models.Kullanici).filter(
