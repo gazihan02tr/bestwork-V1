@@ -4,7 +4,17 @@
     {% block head %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %} - {{ site_branding.site_name if site_branding else 'BestWork' }}</title>
+    <title>{% block title %}{% endblock %} - {{ request.state.site_ayarlar.site_basligi if request.state.site_ayarlar else 'BestWork' }}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{{ request.state.site_ayarlar.seo_aciklama if request.state.site_ayarlar and request.state.site_ayarlar.seo_aciklama else 'BestWork E-Ticaret ve Network Marketing Sistemi' }}">
+    <meta name="keywords" content="{{ request.state.site_ayarlar.seo_anahtar_kelimeler if request.state.site_ayarlar and request.state.site_ayarlar.seo_anahtar_kelimeler else 'e-ticaret, network marketing, kazanç, alışveriş' }}">
+    <meta name="author" content="{{ request.state.site_ayarlar.seo_yazar if request.state.site_ayarlar and request.state.site_ayarlar.seo_yazar else 'BestSoft' }}">
+    
+    <!-- Google Analytics -->
+    {% if request.state.site_ayarlar and request.state.site_ayarlar.google_analytics_kodu %}
+        {{ request.state.site_ayarlar.google_analytics_kodu | safe }}
+    {% endif %}
     
     <script src="https://cdn.tailwindcss.com"></script>
     

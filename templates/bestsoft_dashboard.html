@@ -1,175 +1,188 @@
-{% extends "admin_base.html" %}
-
-{% block title %}Dashboard | BestSoft{% endblock %}
-
-{% block content %}
-<div class="space-y-10">
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BestSoft Dashboard - M3</title>
     
-    <!-- Hero / Welcome Title -->
-    <div class="flex items-end justify-between">
-        <div>
-            <h1 class="title-large text-slate-800 mb-1">Welcome back, Admin</h1>
-            <p class="title-sub">Here's what's happening in your network today.</p>
-        </div>
-        <div class="hidden sm:block">
-            <span class="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded">v9.2.0-fluent</span>
-        </div>
-    </div>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        md: {
+                            primary: '#6750A4',
+                            onPrimary: '#FFFFFF',
+                            primaryContainer: '#EADDFF',
+                            onPrimaryContainer: '#21005D',
+                            secondary: '#625B71',
+                            secondaryContainer: '#E8DEF8',
+                            onSecondaryContainer: '#1D192B',
+                            tertiary: '#7D5260',
+                            tertiaryContainer: '#FFD8E4',
+                            onTertiaryContainer: '#31111D',
+                            surface: '#FEF7FF',
+                            surfaceDim: '#DED8E1',
+                            surfaceBright: '#FEF7FF',
+                            onSurface: '#1D1B20',
+                            onSurfaceVariant: '#49454F',
+                            outline: '#79747E',
+                            outlineVariant: '#CAC4D0',
+                        }
+                    },
+                    boxShadow: {
+                        'elevation-1': '0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+                        'elevation-2': '0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+                        'elevation-3': '0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#F3EDF7] min-h-screen flex flex-col m-0 text-md-onSurface" x-data="{ mobileMenuOpen: false }">
 
-    <!-- Quick Insights (Fluent Cards) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Top Navigation Bar -->
+    <header class="bg-md-surface px-4 md:px-6 h-[72px] shadow-sm flex items-center justify-between sticky top-0 z-50">
         
-        <!-- Metric Card 1 -->
-        <div class="fluent-card p-5 flex flex-col justify-between h-32 relative group cursor-default">
-            <div class="flex justify-between items-start">
-                <span class="text-sm font-medium text-slate-500">Total Members</span>
-                <span class="material-symbols-outlined text-slate-400 group-hover:text-blue-600 transition-colors">group</span>
-            </div>
-            <div>
-                <h3 class="text-3xl font-bold text-slate-800 tracking-tight">12,450</h3>
-                <span class="text-xs text-green-600 font-medium flex items-center gap-1 mt-1">
-                    <span class="material-symbols-outlined text-[10px]">arrow_upward</span> +15 today
-                </span>
-            </div>
-            <!-- Interactive "Reveal" Border (CSS imitation) -->
-            <div class="absolute inset-x-0 bottom-0 h-0.5 bg-blue-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
+        <!-- Logo Section -->
+        <div class="flex items-center gap-3">
+             <div class="w-10 h-10 bg-md-primaryContainer text-md-onPrimaryContainer rounded-full flex items-center justify-center">
+                 <span class="material-symbols-outlined animate-spin-slow">diamond</span>
+             </div>
+             <span class="text-[22px] font-normal text-md-onSurface hidden sm:block">BestSoft</span>
         </div>
 
-        <!-- Metric Card 2 -->
-        <div class="fluent-card p-5 flex flex-col justify-between h-32 relative group cursor-default">
-            <div class="flex justify-between items-start">
-                <span class="text-sm font-medium text-slate-500">Revenue</span>
-                <span class="material-symbols-outlined text-slate-400 group-hover:text-green-600 transition-colors">payments</span>
-            </div>
-            <div>
-                <h3 class="text-3xl font-bold text-slate-800 tracking-tight">₺845K</h3>
-                 <span class="text-xs text-green-600 font-medium flex items-center gap-1 mt-1">
-                    <span class="material-symbols-outlined text-[10px]">arrow_upward</span> +5.2%
-                </span>
-            </div>
-            <div class="absolute inset-x-0 bottom-0 h-0.5 bg-green-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
-        </div>
+        <!-- Desktop Horizontal Menu -->
+        <nav class="hidden lg:flex items-center bg-md-surfaceDim/30 rounded-full px-2 py-1 gap-1">
+            <a href="/bestsoft/dashboard" class="h-[48px] bg-md-secondaryContainer text-md-onSecondaryContainer rounded-full flex items-center px-6 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                <span>Anasayfa</span>
+            </a>
 
-        <!-- Metric Card 3 -->
-        <div class="fluent-card p-5 flex flex-col justify-between h-32 relative group cursor-default">
-            <div class="flex justify-between items-start">
-                <span class="text-sm font-medium text-slate-500">Pending</span>
-                <span class="material-symbols-outlined text-slate-400 group-hover:text-orange-500 transition-colors">pending_actions</span>
-            </div>
-            <div>
-                <h3 class="text-3xl font-bold text-slate-800 tracking-tight">45</h3>
-                 <span class="text-xs text-slate-400 font-medium mt-1">Orders to process</span>
-            </div>
-            <div class="absolute inset-x-0 bottom-0 h-0.5 bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
-        </div>
-        
-        <!-- Metric Card 4 -->
-        <div class="fluent-card p-5 flex flex-col justify-between h-32 relative group cursor-default">
-            <div class="flex justify-between items-start">
-                <span class="text-sm font-medium text-slate-500">System Health</span>
-                <span class="material-symbols-outlined text-slate-400 group-hover:text-purple-600 transition-colors">monitor_heart</span>
-            </div>
-            <div>
-                 <h3 class="text-xl font-bold text-slate-800 tracking-tight">Optimal</h3>
-                 <span class="text-xs text-slate-400 font-medium mt-1">Latency: 24ms</span>
-            </div>
-            <div class="absolute inset-x-0 bottom-0 h-0.5 bg-purple-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></div>
-        </div>
+            <a href="/admin/urunler" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+                <span>Ürünler</span>
+            </a>
 
-    </div>
+            <a href="/admin/kategoriler" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">category</span>
+                <span>Kategoriler</span>
+            </a>
 
-    <!-- Main Workspace Area -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Recent Transactions List -->
-        <div class="fluent-card lg:col-span-2 flex flex-col">
-            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-white/50">
-                <h2 class="text-lg font-semibold text-slate-800">Recent Transactions</h2>
-                <button class="w-8 h-8 rounded hover:bg-black/5 flex items-center justify-center transition-colors">
-                     <span class="material-symbols-outlined text-[18px] text-slate-500">more_horiz</span>
+            <a href="#" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">group</span>
+                <span>Üyeler</span>
+            </a>
+
+            <a href="/admin/kontrol" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3">
+            <!-- Search Icon (Optional) -->
+            <button class="w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center text-md-onSurfaceVariant">
+                <span class="material-symbols-outlined">search</span>
+            </button>
+            
+            <!-- Notifications -->
+            <button class="w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center text-md-onSurfaceVariant transition-colors relative">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            
+            <!-- Profile Dropdown Trigger -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" class="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full hover:bg-black/5 transition-colors">
+                    <div class="w-10 h-10 rounded-full bg-md-tertiaryContainer text-md-onTertiaryContainer flex items-center justify-center font-bold text-lg select-none">
+                        A
+                    </div>
                 </button>
+
+                <!-- Profile Dropdown Menu -->
+                <div x-show="open" @click.outside="open = false" class="absolute right-0 top-12 w-48 bg-md-surface rounded-xl shadow-elevation-2 py-2 border border-md-outlineVariant/20" style="display: none;">
+                    <a href="/bestsoft" class="flex items-center px-4 py-3 hover:bg-black/5 gap-3 text-red-600">
+                        <span class="material-symbols-outlined">logout</span>
+                        <span>Çıkış Yap</span>
+                    </a>
+                </div>
             </div>
-            
-            <div class="p-2">
-                <table class="w-full text-left text-sm">
-                    <thead>
-                        <tr class="text-slate-400 border-b border-gray-50">
-                            <th class="p-3 font-medium">Order ID</th>
-                            <th class="p-3 font-medium">User</th>
-                            <th class="p-3 font-medium">Amount</th>
-                            <th class="p-3 font-medium">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                         <tr class="hover:bg-black/[0.02] transition-colors rounded-lg group">
-                            <td class="p-3 font-mono text-slate-500">#ORD-001</td>
-                            <td class="p-3 text-slate-800 font-medium">John Doe</td>
-                            <td class="p-3 text-slate-700">₺1,200.00</td>
-                            <td class="p-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Paid</span></td>
-                        </tr>
-                        <tr class="hover:bg-black/[0.02] transition-colors rounded-lg group">
-                            <td class="p-3 font-mono text-slate-500">#ORD-002</td>
-                            <td class="p-3 text-slate-800 font-medium">Michael Smith</td>
-                            <td class="p-3 text-slate-700">₺450.50</td>
-                            <td class="p-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span></td>
-                        </tr>
-                        <tr class="hover:bg-black/[0.02] transition-colors rounded-lg group">
-                            <td class="p-3 font-mono text-slate-500">#ORD-003</td>
-                            <td class="p-3 text-slate-800 font-medium">Sarah Conner</td>
-                            <td class="p-3 text-slate-700">₺2,100.00</td>
-                            <td class="p-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Paid</span></td>
-                        </tr>
-                        <tr class="hover:bg-black/[0.02] transition-colors rounded-lg group">
-                            <td class="p-3 font-mono text-slate-500">#ORD-004</td>
-                            <td class="p-3 text-slate-800 font-medium">Emily Rose</td>
-                            <td class="p-3 text-slate-700">₺125.00</td>
-                            <td class="p-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Failed</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="p-4 border-t border-gray-100 text-center">
-                <a href="#" class="text-sm font-medium text-blue-600 hover:underline">View All Transactions</a>
-            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center text-md-onSurfaceVariant">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
         </div>
+    </header>
 
-        <!-- Quick Actions Panel -->
-        <div class="space-y-6">
-            
-            <!-- Quick Action Tiles -->
-            <div>
-                 <h3 class="text-lg font-semibold text-slate-800 mb-4">Quick Actions</h3>
-                 <div class="grid grid-cols-2 gap-3">
-                     <button class="fluent-card p-4 flex flex-col items-center justify-center gap-3 hover:bg-white text-slate-600 hover:text-blue-600 transition-colors aspect-[1.2/1]">
-                         <span class="material-symbols-outlined text-[28px]">person_add</span>
-                         <span class="text-xs font-medium">Add User</span>
-                     </button>
-                      <button class="fluent-card p-4 flex flex-col items-center justify-center gap-3 hover:bg-white text-slate-600 hover:text-blue-600 transition-colors aspect-[1.2/1]">
-                         <span class="material-symbols-outlined text-[28px]">post_add</span>
-                         <span class="text-xs font-medium">New Post</span>
-                     </button>
-                      <button class="fluent-card p-4 flex flex-col items-center justify-center gap-3 hover:bg-white text-slate-600 hover:text-blue-600 transition-colors aspect-[1.2/1]">
-                         <span class="material-symbols-outlined text-[28px]">inventory_2</span>
-                         <span class="text-xs font-medium">Products</span>
-                     </button>
-                      <button class="fluent-card p-4 flex flex-col items-center justify-center gap-3 hover:bg-white text-slate-600 hover:text-blue-600 transition-colors aspect-[1.2/1]">
-                         <span class="material-symbols-outlined text-[28px]">settings</span>
-                         <span class="text-xs font-medium">Config</span>
-                     </button>
-                 </div>
-            </div>
-
-            <!-- System Message -->
-            <div class="fluent-card p-5 bg-gradient-to-br from-indigo-500 to-blue-600 text-white border-0 shadow-lg">
-                <h4 class="font-semibold text-lg mb-2">Pro Features</h4>
-                <p class="text-sm text-indigo-50 opacity-90 mb-4">Switch to the enterprise plan to unlock advanced analytics and unlimited user seats.</p>
-                <button class="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded text-sm font-medium transition-colors border border-white/20">
-                    Upgrade Now
-                </button>
-            </div>
+    <!-- Mobile Navigation Menu (Overlay) -->
+    <div x-show="mobileMenuOpen" x-transition class="lg:hidden fixed inset-0 z-40 bg-md-surface pt-[72px] px-4">
+        <div class="flex flex-col gap-2 mt-4">
+            <a href="/bestsoft/dashboard" class="h-[56px] bg-md-secondaryContainer text-md-onSecondaryContainer rounded-full flex items-center px-6 font-medium gap-3">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Anasayfa</span>
+            </a>
+             <a href="/admin/urunler" class="h-[56px] hover:bg-black/5 text-md-onSurfaceVariant rounded-full flex items-center px-6 font-medium gap-3">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span>Ürün Yönetimi</span>
+            </a>
+             <a href="/admin/kategoriler" class="h-[56px] hover:bg-black/5 text-md-onSurfaceVariant rounded-full flex items-center px-6 font-medium gap-3">
+                <span class="material-symbols-outlined">category</span>
+                <span>Kategoriler</span>
+            </a>
+             <a href="#" class="h-[56px] hover:bg-black/5 text-md-onSurfaceVariant rounded-full flex items-center px-6 font-medium gap-3">
+                <span class="material-symbols-outlined">group</span>
+                <span>Üyeler</span>
+            </a>
+             <a href="/admin/kontrol" class="h-[56px] hover:bg-black/5 text-md-onSurfaceVariant rounded-full flex items-center px-6 font-medium gap-3">
+                <span class="material-symbols-outlined">settings</span>
+                <span>Ayarlar</span>
+            </a>
+            <div class="h-px bg-md-outlineVariant my-2"></div>
+            <a href="/bestsoft" class="h-[56px] hover:bg-red-50 text-red-600 rounded-full flex items-center px-6 font-medium gap-3">
+                <span class="material-symbols-outlined">logout</span>
+                <span>Çıkış</span>
+            </a>
         </div>
-
     </div>
-</div>
-{% endblock %}
+
+    <!-- Main Content Wrapper -->
+    <main class="flex-1 flex flex-col w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8">
+        
+        <!-- Welcome Greeting -->
+        <div class="mb-8">
+            <h1 class="text-[32px] md:text-[36px] font-normal text-md-onSurface">Hoşgeldin, Admin 👋</h1>
+        </div>
+
+        <!-- Content Area -->
+        <div class="grid grid-cols-1 gap-6">
+            <!-- Dashboard Content Placeholder -->
+            <div class="bg-md-surface rounded-[24px] p-8 border border-md-outlineVariant/20 shadow-sm flex items-center justify-center min-h-[300px]">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-md-secondaryContainer text-md-onSecondaryContainer rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-[32px]">dashboard_customize</span>
+                    </div>
+                    <h3 class="text-[20px] font-normal text-md-onSurface mb-2">Dashboard Boş</h3>
+                    <p class="text-md-onSurfaceVariant text-sm">İstatistikler ve özet veriler buraya eklenecek.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+</html>

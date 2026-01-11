@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, Request, Form
 from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse, HTMLResponse
+import subprocess
+import os
 from app import models, crud, schemas
 from app.dependencies import get_db, templates
 
@@ -18,9 +20,10 @@ async def bestsoft_login_action(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    # Admin modelinde ara
     admin = db.query(models.Admin).filter(models.Admin.kullanici_adi == username).first()
     if not admin or admin.sifre != password:
-        return templates.TemplateResponse("bestsoft_login.html", {"request": request, "error": "Geçersiz Kullanıcı Adı veya Şifre"})
+        return templates.TemplateResponse("bestsoft_login.html", {"request": request, "hata": "Geçersiz Kullanıcı Adı veya Şifre"})
     
     # Admin JWT Token
     from app import utils
@@ -28,7 +31,7 @@ async def bestsoft_login_action(
         data={"sub": f"admin:{username}"}
     )
 
-    response = RedirectResponse(url="/admin/dashboard", status_code=303)
+    response = RedirectResponse(url="/bestsoft/dashboard", status_code=303)
     response.set_cookie(
         key="admin_token", 
         value=f"Bearer {access_token}",
@@ -36,6 +39,12 @@ async def bestsoft_login_action(
         samesite="lax",
         secure=False
     )
+    return response
+
+@router.get("/admin/logout")
+def admin_logout():
+    response = RedirectResponse(url="/bestsoft", status_code=303)
+    response.delete_cookie("admin_token")
     return response
 
 # Dependency veya Yardımcı Fonksiyon
@@ -51,103 +60,46 @@ def get_current_admin(request: Request):
                 return sub.split(":")[1]
     return None
 
-# ADMIN DASHBOARD (YENİ ANASAYFA)
-@router.get("/admin/dashboard", response_class=HTMLResponse)
-def admin_dashboard(request: Request, db: Session = Depends(get_db)):
+# BESTSOFT ADMIN DASHBOARD (YENİ ANASAYFA)
+@router.get("/bestsoft/dashboard", response_class=HTMLResponse)
+def bestsoft_dashboard(request: Request, db: Session = Depends(get_db)):
     admin_user = get_current_admin(request)
     if not admin_user:
         return RedirectResponse(url="/bestsoft", status_code=303)
     
     return templates.TemplateResponse("bestsoft_dashboard.html", {"request": request})
 
+# Yardımcı Fonksiyon: Güncelleme Kontrolü
+def check_for_updates():
+    try:
+        # Git fetch işlemi (timeout ile)
+        subprocess.run(["git", "fetch"], check=True, timeout=2, capture_output=True)
+        # Status kontrolü
+        result = subprocess.run(["git", "status", "-uno"], check=True, capture_output=True, text=True)
+        if "Your branch is behind" in result.stdout:
+            return True
+    except:
+        pass
+    return False
 
-# ADMIN KONTROL SAYFASI
-@router.get("/admin/kontrol", response_class=HTMLResponse)
-def admin_ayar_sayfasi(request: Request, db: Session = Depends(get_db)):
+# ADMIN AYARLAR SAYFASI
+@router.get("/admin/ayarlar")
+def admin_ayarlar_page(request: Request, db: Session = Depends(get_db)):
     admin_user = get_current_admin(request)
     if not admin_user:
         return RedirectResponse(url="/bestsoft", status_code=303)
+        
+    update_available = check_for_updates()
     
-    nesiller = db.query(models.NesilAyari).order_by(models.NesilAyari.nesil_no).all()
-    # Key-Value Ayarlar (eskiden kalma)
-    kv_ayarlar = db.query(models.Ayarlar).all()
-    # Yeni Site Ayarları (Footer vs)
-    site_ayarlari = db.query(models.SiteAyarlari).first()
-    if not site_ayarlari:
-        site_ayarlari = models.SiteAyarlari()
-        db.add(site_ayarlari)
-        db.commit()
-    
-    return templates.TemplateResponse("admin_ayarlar.html", {
-        "request": request,
-        "nesiller": nesiller,
-        "toplam_nesil": len(nesiller),
-        "ayarlar": kv_ayarlar,
-        "site_ayarlar": site_ayarlari
-    })
+    return templates.TemplateResponse("admin_ayarlar.html", {"request": request, "update_available": update_available})
 
-# --- ADMIN İŞLEMLERİ ---
 
-# 1. Key-Value Ayarları Güncelle (Tek tek)
-@router.post("/admin/kv-ayarlar/guncelle")
-def admin_kv_ayar_guncelle(
-    anahtar: str = Form(...),
-    deger: float = Form(...),
-    db: Session = Depends(get_db)
-):
-    print(f"DEBUG: KV Update -> {anahtar} = {deger}")
-    ayar = db.query(models.Ayarlar).filter(models.Ayarlar.anahtar == anahtar).first()
-    if ayar:
-        ayar.deger = deger
-        db.commit()
-    return RedirectResponse(url="/admin/kontrol", status_code=303)
+# ADMIN KONTROL SAYFASI (Eski Rota - Yönlendirme)
+@router.get("/admin/kontrol")
+def admin_ayar_redirect():
+    return RedirectResponse(url="/admin/ayarlar", status_code=303)
 
-# 2. Genel Site Ayarları Güncelle (Toplu)
-@router.post("/admin/site-ayarlari/guncelle")
-def admin_site_ayarlari_guncelle(
-    site_basligi: str = Form(...),
-    min_cekime_limiti: float = Form(...),
-    footer_baslik: str = Form(None),
-    footer_aciklama: str = Form(None),
-    footer_copyright: str = Form(None),
-    iletisim_email: str = Form(None),
-    iletisim_telefon: str = Form(None),
-    db: Session = Depends(get_db)
-):
-    ayarlar = db.query(models.SiteAyarlari).first()
-    if not ayarlar:
-        ayarlar = models.SiteAyarlari()
-        db.add(ayarlar)
-    
-    ayarlar.site_basligi = site_basligi
-    ayarlar.min_cekime_limiti = min_cekime_limiti
-    ayarlar.footer_baslik = footer_baslik
-    ayarlar.footer_aciklama = footer_aciklama
-    ayarlar.footer_copyright = footer_copyright
-    ayarlar.iletisim_email = iletisim_email
-    ayarlar.iletisim_telefon = iletisim_telefon
-    
-    db.commit()
-    
-    return RedirectResponse(url="/admin/kontrol", status_code=303)
-
-@router.post("/admin/nesil/ekle")
-def admin_nesil_ekle(
-    ad: str = Form(...),
-    yuzde: float = Form(...),
-    derinlik: int = Form(...),
-    db: Session = Depends(get_db)
-):
-    yeni_nesil = models.Nesil(ad=ad, yuzde=yuzde, derinlik=derinlik)
-    db.add(yeni_nesil)
-    db.commit()
-    return RedirectResponse(url="/admin/kontrol", status_code=303)
-
-@router.get("/admin/nesil/sil/{nesil_id}")
-def admin_nesil_sil(nesil_id: int, db: Session = Depends(get_db)):
-    db.query(models.Nesil).filter(models.Nesil.id == nesil_id).delete()
-    db.commit()
-    return RedirectResponse(url="/admin/kontrol", status_code=303)
+# ... Diğer rotalar (Ürünler, Kategoriler vb.) buraya eklenebilir ...
 
 # ADMİN: Ürün Ekleme
 @router.get("/admin/urun/ekle", response_class=HTMLResponse)
@@ -213,3 +165,180 @@ def admin_kategori_ekle(
     )
     crud.kategori_olustur(db, kategori_data)
     return RedirectResponse(url="/admin/kategoriler", status_code=303)
+
+# --- SEO AYARLARI ---
+
+@router.get("/admin/ayarlar/seo", response_class=HTMLResponse)
+def admin_seo_page(request: Request, db: Session = Depends(get_db)):
+    # Check admin auth
+    admin_user = get_current_admin(request)
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+        
+    ayarlar = db.query(models.SiteAyarlari).first()
+    if not ayarlar:
+        ayarlar = models.SiteAyarlari()
+        db.add(ayarlar)
+        db.commit()
+        db.refresh(ayarlar)
+        
+    return templates.TemplateResponse("admin_seo.html", {"request": request, "ayarlar": ayarlar})
+
+@router.post("/admin/ayarlar/seo")
+def admin_seo_update(
+    request: Request,
+    site_basligi: str = Form(...),
+    seo_aciklama: str = Form(""),
+    seo_anahtar_kelimeler: str = Form(""),
+    seo_yazar: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    admin_user = get_current_admin(request)
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+        
+    ayarlar = db.query(models.SiteAyarlari).first()
+    if not ayarlar:
+        ayarlar = models.SiteAyarlari()
+        db.add(ayarlar)
+    
+    ayarlar.site_basligi = site_basligi
+    ayarlar.seo_aciklama = seo_aciklama
+    ayarlar.seo_anahtar_kelimeler = seo_anahtar_kelimeler
+    ayarlar.seo_yazar = seo_yazar
+    
+    db.commit()
+    
+    # Redirect back with success message
+    return RedirectResponse(url="/admin/ayarlar/seo?success=true", status_code=303)
+
+# --- GOOGLE ANALYTICS AYARLARI ---
+
+@router.get("/admin/ayarlar/analytics", response_class=HTMLResponse)
+def admin_analytics_page(request: Request, db: Session = Depends(get_db)):
+    # Check admin auth
+    admin_user = get_current_admin(request)
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+        
+    ayarlar = db.query(models.SiteAyarlari).first()
+    if not ayarlar:
+        ayarlar = models.SiteAyarlari()
+        db.add(ayarlar)
+        db.commit()
+        db.refresh(ayarlar)
+        
+    return templates.TemplateResponse("admin_analytics.html", {"request": request, "ayarlar": ayarlar})
+
+@router.post("/admin/ayarlar/analytics")
+def admin_analytics_update(
+    request: Request,
+    google_analytics_kodu: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    admin_user = get_current_admin(request)
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+        
+    ayarlar = db.query(models.SiteAyarlari).first()
+    if not ayarlar:
+        ayarlar = models.SiteAyarlari()
+        db.add(ayarlar)
+    
+    ayarlar.google_analytics_kodu = google_analytics_kodu
+    
+    db.commit()
+    
+    return RedirectResponse(url="/admin/ayarlar/analytics?success=true", status_code=303)
+
+# --- SİSTEM GÜNCELLEME ---
+@router.get("/admin/ayarlar/guncelleme", response_class=HTMLResponse)
+def admin_ayarlar_guncelleme(request: Request):
+    # Read the README.md content
+    readme_content = ""
+    try:
+        # Assuming README.md is in the root directory
+        readme_path = os.path.join(os.getcwd(), "README.md")
+        if os.path.exists(readme_path):
+            with open(readme_path, "r", encoding="utf-8") as f:
+                readme_content = f.read()
+        else:
+            readme_content = "README.md dosyası bulunamadı."
+    except Exception as e:
+        readme_content = f"README dosyası okunamadı: {str(e)}"
+    
+    result_message = request.query_params.get("message")
+    update_available = check_for_updates()
+
+    return templates.TemplateResponse("admin_ayarlar_guncelleme.html", {
+        "request": request,
+        "readme_content": readme_content,
+        "result_message": result_message,
+        "update_available": update_available
+    })
+
+@router.post("/admin/ayarlar/guncelleme/check")
+def admin_ayarlar_guncelleme_check(request: Request):
+    try:
+        # Run git fetch
+        subprocess.run(["git", "fetch"], check=True, capture_output=True)
+        # Check status
+        result = subprocess.run(["git", "status", "-uno"], check=True, capture_output=True, text=True)
+        raw_output = result.stdout
+        
+        # Output Parsing & Formatting
+        message = ""
+        lines = raw_output.splitlines()
+        
+        # Check Main Status
+        if "Your branch is up to date" in raw_output:
+            message += "✅ SİSTEM GÜNCEL\n\n"
+            message += "Sisteminiz şu anda sunucudaki en son versiyonla senkronizedir.\n"
+        elif "Your branch is behind" in raw_output:
+            message += "⚠️ GÜNCELLEME MEVCUT\n\n"
+            message += "Sunucuda yeni bir sürüm bulundu. Lütfen güncelleme butonunu kullanarak sistemi yükseltin.\n"
+        else:
+            message += "ℹ️ DURUM BİLGİSİ\n\n"
+            message += "Git durumu aşağıdadır:\n"
+
+        # Check Local Changes (Dirty State)
+        if "Changes not staged for commit" in raw_output or "Changes to be committed" in raw_output:
+             message += "\n----------------------------------------\n"
+             message += "⚠️ YEREL DEĞİŞİKLİKLER UYARISI:\n"
+             message += "Sistemde yerel olarak değiştirilmiş dosyalar var.\n"
+             
+             # Filter out massive lists of files (like .venv clutter)
+             change_lines = [line for line in lines if "modified:" in line or "deleted:" in line or "renamed:" in line]
+             if len(change_lines) > 10:
+                 message += f"{len(change_lines)} adet dosya farklı görünüyor. (Detaylar gizlendi)\n"
+             else:
+                 message += "Etkilenen Dosyalar:\n"
+                 for line in change_lines:
+                     message += f"{line.strip()}\n"
+
+    except Exception as e:
+        message = f"Hata oluştu: {str(e)}"
+    
+    import urllib.parse
+    encoded_message = urllib.parse.quote(message)
+    
+    return RedirectResponse(url=f"/admin/ayarlar/guncelleme?message={encoded_message}", status_code=303)
+
+@router.post("/admin/ayarlar/guncelleme/pull")
+def admin_ayarlar_guncelleme_pull(request: Request):
+    try:
+        # Run git pull
+        result = subprocess.run(["git", "pull"], check=True, capture_output=True, text=True)
+        message = f"Güncelleme Çıktısı:\n{result.stdout}"
+    except subprocess.CalledProcessError as e:
+        # Decode bytes if necessary
+        err_msg = e.stderr.decode('utf-8') if isinstance(e.stderr, bytes) else str(e.stderr)
+        message = f"Güncelleme Hatası (Git):\n{err_msg}"
+    except Exception as e:
+        message = f"Hata: {str(e)}"
+    
+    import urllib.parse
+    encoded_message = urllib.parse.quote(message)
+    
+    return RedirectResponse(url=f"/admin/ayarlar/guncelleme?message={encoded_message}", status_code=303)
+

@@ -7,7 +7,24 @@
 > *   **YY (Yıl):** İlk hane yılı temsil eder (26 = 2026).
 > *   **M (Ay):** İkinci hane, güncellemenin yayınlandığı ayı temsil eder (1 = Ocak).
 > *   **R (Revizyon):** Son hane, o ay içinde yapılan kaçıncı güncelleme olduğunu gösterir.
+### v26.1.1 (11.01.2026) - Yönetim Paneli Yapısal Dönüşümü & Güncelleme Sistemi
 
+Bu güncelleme ile yönetim paneli modüler bir yapıya kavuşturulmuş, ayarlar dashboard'dan ayrılarak kendi özel alanına taşınmıştır. Ayrıca sistemin uzaktan yönetimi ve güncellenebilirliği için entegre Git altyapısı kurulmuştur.
+
+#### 1. Yönetim Paneli Refactor (Yapısal Düzenleme)
+*   **Ayarlar Modülü Ayrıştırıldı:** Önceden Dashboard anasayfasında bulunan SEO, Analytics ve Firma Bilgileri modülleri, yeni oluşturulan `/admin/ayarlar` sayfasına taşındı.
+*   **Dashboard Temizliği:** Anasayfa (`bestsoft_dashboard.html`) üzerindeki kalabalık yapı kaldırılarak, gelecekteki istatistik verileri için "Boş Dashboard" (Placeholder) yapısına getirildi.
+*   **Routing Optimizasyonu:** `/admin/ayarlar` rotası oluşturuldu ve eski `/admin/kontrol` trafiği buraya yönlendirildi.
+
+#### 2. Entegre Sistem Güncelleme Yönetimi
+*   **Tek Tıkla Güncelleme:** Yönetim paneline "Sistem Güncellemeleri" modülü eklendi. Yöneticiler artık terminale girmeden panel üzerinden sistemi güncelleyebilir.
+*   **Akıllı Durum Analizi:** Sistem arka planda `git fetch` ve `git status` analizi yaparak:
+    *   Sistem güncel mi?
+    *   Sunucuda yeni version var mı?
+    *   Yerel dosyalarda değişiklik (conflict riski) var mı? 
+    sorularını yanıtlar ve kullanıcıya anlaşılır bir rapor sunar.
+*   **Görsel Bildirimler:** Yeni bir güncelleme bulunduğunda Ayarlar ikonunda ve Güncelleme sayfasında dikkat çekici uyarılar (Badge/Banner) belirir.
+*   **Canlı Terminal Çıktısı:** Güncelleme işleminin sonucu, özel tasarlanmış terminal görünümü içinde yöneticiye sunulur.
 ### v26.1.0 (11.01.2026) - Radikal Kararlılık Sürümü (The Stability Milestone)
 
 Bu sürüm, BestWork projesinin geliştirme sürecinde alınan radikal bir kararla, sürüm numaralandırmasında büyük bir sıçrama yaparak sistemin ulaştığı olgunluk seviyesini temsil etmektedir. Tüm MLM kuralları, dağıtım algoritmaları ve altyapı mimarisi nihai (final) onayı alarak stabilize edilmiştir.

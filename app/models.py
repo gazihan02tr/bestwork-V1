@@ -101,6 +101,14 @@ class SiteAyarlari(Base):
     site_basligi = Column(String(255), default="BestWork")
     min_cekime_limiti = Column(Float, default=500.0)
     
+    # SEO Ayarları
+    seo_aciklama = Column(Text, default="BestWork E-Ticaret ve Network Marketing Sistemi")
+    seo_anahtar_kelimeler = Column(Text, default="e-ticaret, network marketing, kazanç sistemi")
+    seo_yazar = Column(String(100), default="BestSoft")
+
+    # Google Analytics
+    google_analytics_kodu = Column(Text, nullable=True)
+
     # Footer Ayarları
     footer_baslik = Column(String, default="BestWork")
     footer_aciklama = Column(Text, default="Premium alışveriş deneyimini yeniden tanımlıyoruz. Kalite, güven ve estetik bir arada.")

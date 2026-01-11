@@ -1,109 +1,188 @@
-{% extends "admin_base.html" %}
-
-{% block title %}Settings | BestSoft{% endblock %}
-
-{% block content %}
-<div class="space-y-8">
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayarlar - BestSoft</title>
     
-    <!-- Page Header -->
-    <div class="border-b border-black/5 pb-4">
-        <h1 class="title-large text-slate-800 mb-1">System Settings</h1>
-        <p class="title-sub">Manage global configuration and network parameters.</p>
-    </div>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        md: {
+                            primary: '#6750A4',
+                            onPrimary: '#FFFFFF',
+                            primaryContainer: '#EADDFF',
+                            onPrimaryContainer: '#21005D',
+                            secondary: '#625B71',
+                            secondaryContainer: '#E8DEF8',
+                            onSecondaryContainer: '#1D192B',
+                            tertiary: '#7D5260',
+                            tertiaryContainer: '#FFD8E4',
+                            onTertiaryContainer: '#31111D',
+                            surface: '#FEF7FF',
+                            surfaceDim: '#DED8E1',
+                            surfaceBright: '#FEF7FF',
+                            onSurface: '#1D1B20',
+                            onSurfaceVariant: '#49454F',
+                            outline: '#79747E',
+                            outlineVariant: '#CAC4D0',
+                        }
+                    },
+                    boxShadow: {
+                        'elevation-1': '0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+                        'elevation-2': '0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#F3EDF7] min-h-screen flex flex-col m-0 text-md-onSurface" x-data="{ mobileMenuOpen: false }">
 
-    <form action="/admin/kv-ayarlar/guncelle" method="post">
-        <!-- Section: Calculation Parameters -->
-        <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-blue-600">calculate</span>
-            Calculation Parameters
-        </h2>
+    <!-- Top Navigation Bar -->
+    <header class="bg-md-surface px-4 md:px-6 h-[72px] shadow-sm flex items-center justify-between sticky top-0 z-50">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {% for ayar in ayarlar %}
-            <div class="fluent-card p-4 hover:bg-white/90">
-                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{{ ayar.anahtar.replace('_', ' ') }}</label>
-                <div class="flex gap-2">
-                    <input type="hidden" name="anahtar" value="{{ ayar.anahtar }}">
-                    <input type="number" step="0.01" name="deger" class="fluent-input w-full font-mono text-sm" value="{{ ayar.deger }}">
-                    <button class="w-8 h-[34px] flex items-center justify-center rounded bg-black/5 hover:bg-blue-600 hover:text-white transition-colors" type="submit">
-                        <span class="material-symbols-outlined text-[16px]">save</span>
-                    </button>
-                </div>
-            </div>
-            {% endfor %}
+        <!-- Logo Section -->
+        <div class="flex items-center gap-3">
+             <div class="w-10 h-10 bg-md-primaryContainer text-md-onPrimaryContainer rounded-full flex items-center justify-center">
+                 <span class="material-symbols-outlined">diamond</span>
+             </div>
+             <span class="text-[22px] font-normal text-md-onSurface hidden sm:block">BestSoft</span>
         </div>
-    </form>
 
-    <!-- Section: Site Identity & Footer -->
-    <form action="/admin/site-ayarlari/guncelle" method="post">
-        <h2 class="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-purple-600">web</span>
-            Site Identity & Footer
-        </h2>
+        <!-- Desktop Horizontal Menu -->
+        <nav class="hidden lg:flex items-center bg-md-surfaceDim/30 rounded-full px-2 py-1 gap-1">
+            <a href="/bestsoft/dashboard" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                <span>Anasayfa</span>
+            </a>
 
-        <div class="fluent-card p-6 md:p-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
-                <!-- Left Column -->
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Site Title</label>
-                        <input type="text" name="site_basligi" value="{{ site_ayarlar.site_basligi }}" class="fluent-input w-full" required>
-                        <p class="text-xs text-slate-400 mt-1">Appears in the browser tab and main header.</p>
-                    </div>
+            <a href="/admin/urunler" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+                <span>Ürünler</span>
+            </a>
 
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Min. Withdrawal Limit</label>
-                         <div class="relative">
-                            <span class="absolute left-3 top-2 text-slate-400">₺</span>
-                            <input type="number" step="0.01" name="min_cekime_limiti" value="{{ site_ayarlar.min_cekime_limiti }}" class="fluent-input w-full pl-8" required>
-                         </div>
-                    </div>
+            <a href="/admin/kategoriler" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">category</span>
+                <span>Kategoriler</span>
+            </a>
 
-                    <div>
-                         <label class="block text-sm font-semibold text-slate-700 mb-2">Footer Description</label>
-                         <textarea name="footer_aciklama" rows="4" class="fluent-input w-full resize-none">{{ site_ayarlar.footer_aciklama }}</textarea>
-                    </div>
-                </div>
+            <a href="#" class="h-[48px] text-md-onSurfaceVariant hover:bg-black/5 rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">group</span>
+                <span>Üyeler</span>
+            </a>
 
-                <!-- Right Column -->
-                <div class="space-y-6">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Brand Name</label>
-                            <input type="text" name="footer_baslik" value="{{ site_ayarlar.footer_baslik }}" class="fluent-input w-full">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Copyright Text</label>
-                            <input type="text" name="footer_copyright" value="{{ site_ayarlar.footer_copyright }}" class="fluent-input w-full">
-                        </div>
-                    </div>
+            <a href="/admin/ayarlar" class="h-[48px] bg-md-secondaryContainer text-md-onSecondaryContainer rounded-full flex items-center px-5 font-medium text-[14px] gap-2 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">settings</span>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
 
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Contact Email</label>
-                        <div class="relative">
-                            <input type="email" name="iletisim_email" value="{{ site_ayarlar.iletisim_email }}" class="fluent-input w-full pl-9">
-                            <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-[18px]">mail</span>
-                        </div>
-                    </div>
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3">
+            <a href="/bestsoft" class="flex items-center px-4 py-3 hover:bg-black/5 gap-3 text-red-600 rounded-full">
+                <span class="material-symbols-outlined">logout</span>
+            </a>
+        </div>
+    </header>
 
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Contact Phone</label>
-                        <div class="relative">
-                            <input type="text" name="iletisim_telefon" value="{{ site_ayarlar.iletisim_telefon }}" class="fluent-input w-full pl-9">
-                            <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-[18px]">call</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Main Content Wrapper -->
+    <main class="flex-1 flex flex-col w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-[32px] md:text-[36px] font-normal text-md-onSurface">Ayarlar</h1>
+        </div>
 
-            <div class="mt-8 pt-6 border-t border-black/5 flex justify-end">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow-sm text-sm font-medium transition-colors">
-                    Save Changes
-                </button>
+        <!-- Content Area -->
+        <div class="grid grid-cols-1 gap-6">
+            <!-- Site Yönetimi Modülü -->
+            <div class="bg-md-surface rounded-[24px] p-8 border border-md-outlineVariant/20 shadow-sm flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
+                 
+                 <!-- Module Badge -->
+                 <div class="absolute top-0 right-0 bg-md-primaryContainer text-md-onPrimaryContainer text-[10px] font-bold tracking-wider px-4 py-2 rounded-bl-2xl">
+                     MODÜL 1
+                 </div>
+
+                 <div class="w-20 h-20 shrink-0 bg-md-secondaryContainer text-md-onSecondaryContainer rounded-[24px] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[40px]">admin_panel_settings</span>
+                 </div>
+
+                 <div class="flex-1 w-full">
+                     <h3 class="text-[24px] font-normal text-md-onSurface mb-2">Site Yönetimi Modülü</h3>
+                     <p class="text-md-onSurfaceVariant leading-normal mb-8 max-w-3xl">
+                        Sistemizin genel işleyişiyle ilgili ayarları buradan yönetebilirsiniz. SEO ayarları, Google Analytics kodları, firma bilgileri ve diğer ayarı buradan yönetebilirsiniz.
+                     </p>
+
+                     <!-- Action Buttons for Module Features -->
+                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <a href="/admin/ayarlar/seo" class="h-auto py-3 bg-md-surface border border-md-outlineVariant/50 rounded-xl flex items-center px-4 gap-3 hover:bg-black/5 transition-colors text-left group">
+                            <div class="w-10 h-10 shrink-0 rounded-full bg-md-primaryContainer/30 text-md-primary flex items-center justify-center">
+                                <span class="material-symbols-outlined group-hover:scale-110 transition-transform">search</span>
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-[15px] font-medium text-md-onSurface truncate">SEO Ayarları</span>
+                                <span class="text-[12px] text-md-onSurfaceVariant truncate">Arama motoru optimizasyonu</span>
+                            </div>
+                            <span class="material-symbols-outlined ml-auto text-md-outlineVariant">chevron_right</span>
+                        </a>
+
+                        <a href="/admin/ayarlar/analytics" class="h-auto py-3 bg-md-surface border border-md-outlineVariant/50 rounded-xl flex items-center px-4 gap-3 hover:bg-black/5 transition-colors text-left group">
+                            <div class="w-10 h-10 shrink-0 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined group-hover:scale-110 transition-transform">analytics</span>
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-[15px] font-medium text-md-onSurface truncate">Google Analytics</span>
+                                <span class="text-[12px] text-md-onSurfaceVariant truncate">Ziyaretçi istatistikleri</span>
+                            </div>
+                            <span class="material-symbols-outlined ml-auto text-md-outlineVariant">chevron_right</span>
+                        </a>
+
+                        <button class="h-auto py-3 bg-md-surface border border-md-outlineVariant/50 rounded-xl flex items-center px-4 gap-3 hover:bg-black/5 transition-colors text-left group">
+                            <div class="w-10 h-10 shrink-0 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined group-hover:scale-110 transition-transform">business</span>
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-[15px] font-medium text-md-onSurface truncate">Firma Bilgileri</span>
+                                <span class="text-[12px] text-md-onSurfaceVariant truncate">K.Kimlik ve iletişim</span>
+                            </div>
+                            <span class="material-symbols-outlined ml-auto text-md-outlineVariant">chevron_right</span>
+                        </button>
+
+                        <a href="/admin/ayarlar/guncelleme" class="h-auto py-3 bg-md-surface border border-md-outlineVariant/50 rounded-xl flex items-center px-4 gap-3 hover:bg-black/5 transition-colors text-left group relative">
+                            {% if update_available %}
+                            <div class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse z-10 border border-white">
+                                GÜNCELLEME VAR
+                            </div>
+                            {% endif %}
+                            <div class="w-10 h-10 shrink-0 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined group-hover:scale-110 transition-transform">system_update</span>
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-[15px] font-medium text-md-onSurface truncate">Sistem Güncellemeleri</span>
+                                <span class="text-[12px] text-md-onSurfaceVariant truncate">Versiyon ve güncelleme</span>
+                            </div>
+                            <span class="material-symbols-outlined ml-auto text-md-outlineVariant">chevron_right</span>
+                        </a>
+                     </div>
+                 </div>
             </div>
         </div>
-    </form>
 
-</div>
-{% endblock %}
+    </main>
+
+</body>
+</html>
