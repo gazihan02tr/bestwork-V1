@@ -2,6 +2,26 @@
 
 ## Sürüm Geçmişi
 
+> **Sürüm Numaralandırma Mantığı (Versioning):**
+> **vYY.M.R** (Örn: v26.1.0)
+> *   **YY (Yıl):** İlk hane yılı temsil eder (26 = 2026).
+> *   **M (Ay):** İkinci hane, güncellemenin yayınlandığı ayı temsil eder (1 = Ocak).
+> *   **R (Revizyon):** Son hane, o ay içinde yapılan kaçıncı güncelleme olduğunu gösterir.
+
+### v26.1.0 (11.01.2026) - Radikal Kararlılık Sürümü (The Stability Milestone)
+
+Bu sürüm, BestWork projesinin geliştirme sürecinde alınan radikal bir kararla, sürüm numaralandırmasında büyük bir sıçrama yaparak sistemin ulaştığı olgunluk seviyesini temsil etmektedir. Tüm MLM kuralları, dağıtım algoritmaları ve altyapı mimarisi nihai (final) onayı alarak stabilize edilmiştir.
+
+#### 1. MLM Çekirdek Kuralları Kesinleştirildi (Final Rule Set)
+*   **Puan Silinme Mantığı:** "Kısa kol daima silinir" kuralı sisteme değişmez bir standart olarak entegre edildi. Eşleşme sonrası kısa kol puanı sıfırlanır, uzun koldan kısa kol kadar düşülür.
+*   **Kariyer (Rütbe) Algoritması:** Rütbelerin **Anlık Puan** ile değil, **Kümülatif (Toplam) Ciro** ile belirlendiği doğrulandı.
+    *   Rütbe atlaması için Kısa Kol cirosunun ilgili rütbe limitine (Örn: Platinum için 5000) ulaşması esas alınır.
+*   **Algoritma Doğrulaması:** Sistem liderlerinin belirttiği tüm matematiksel kuralların (Binary dengeleme, Matching bonusları) backend tarafında %100 doğru çalıştığı test edildi ve onaylandı.
+
+#### 2. Sistem Kararlılığı ve Sürüm Atlaması
+*   **V26 Sürümü:** Sistem altyapısının güvenilirliği ve kuralların oturması nedeniyle, versiyon numarası V10.x serisinden V26.1.0 serisine yükseltildi. Bu, projenin "Beta" aşamasından çıkıp "Production Ready" (Canlıya Hazır) olduğunu simgeler.
+*   **Altyapı Güçlendirmesi:** `eslesme_kontrol_et` ve `rutbe_guncelle` fonksiyonları, liderlerin belirlediği iş kurallarına tam uyumlu hale getirilerek kilitlendi.
+
 ### v10.1.1 (10.01.2026) - Binary Ağacı Lazy Loading ve Performans Yaması
 
 Bu ara güncelleme, büyük organizasyon yapılarına sahip liderlerin (1000+ alt üye) yaşadığı ağaç görüntüleme performans sorunlarını çözmek ve veri trafiğini minimize etmek için yayınlanmıştır.
