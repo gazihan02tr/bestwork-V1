@@ -374,6 +374,60 @@ def admin_firma_update(
     # Redirect back with success message
     return RedirectResponse(url="/admin/ayarlar/firma?success=true", status_code=303)
 
+
+# --- YENİ: RÜTBE YÖNETİMİ ---
+
+@router.get("/admin/ayarlar/rutbeler", response_class=HTMLResponse)
+def admin_rutbeler_page(request: Request, db: Session = Depends(get_db)):
+    # Admin yetkilendirmesini kontrol et
+    admin_user = get_current_admin(request)
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+
+    # Veritabanından tüm rütbeleri çek
+    rutbeler = crud.get_rutbeler(db)
+
+    return templates.TemplateResponse("admin_rutbeler.html", {
+        "request": request,
+        "rutbeler": rutbeler
+    })
+
+@router.post("/admin/ayarlar/rutbeler")
+async def admin_rutbeler_update(request: Request, db: Session = Depends(get_db)):
+    # Admin yetkilendirmesini kontrol et
+    admin_user = get_current_admin(request)
+    if not admin_user:
+        return RedirectResponse(url="/bestsoft", status_code=303)
+
+    form_data = await request.form()
+
+    # Formdaki tüm alanları döngüye al
+    i = 1
+    while f"rutbe_id_{i}" in form_data:
+        rutbe_id = int(form_data[f"rutbe_id_{i}"])
+
+        # 'Distribütör' rütbesi hariç diğerlerini güncelle
+        if f"sol_pv_{i}" in form_data:
+            sol_pv = int(form_data[f"sol_pv_{i}"])
+            sag_pv = int(form_data[f"sag_pv_{i}"])
+
+            try:
+                crud.update_rutbe(db, rutbe_id, sol_pv, sag_pv)
+            except HTTPException as e:
+                # Hata durumunda formu hata mesajıyla geri gönder (isteğe bağlı)
+                rutbeler = crud.get_rutbeler(db)
+                return templates.TemplateResponse("admin_rutbeler.html", {
+                    "request": request,
+                    "rutbeler": rutbeler,
+                    "hata": f"ID {rutbe_id} için hata: {e.detail}"
+                })
+
+        i += 1
+
+    # Başarılı güncelleme sonrası yönlendirme
+    return RedirectResponse(url="/admin/ayarlar/rutbeler?success=true", status_code=303)
+
+
 # --- SİSTEM GÜNCELLEME ---
 @router.get("/admin/ayarlar/guncelleme", response_class=HTMLResponse)
 def admin_ayarlar_guncelleme(request: Request):
