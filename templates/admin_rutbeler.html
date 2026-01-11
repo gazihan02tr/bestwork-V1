@@ -1,0 +1,94 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Rütbe Yönetimi{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">Rütbe Yönetimi</h1>
+        <a href="/admin/ayarlar" class="text-sm text-indigo-600 hover:text-indigo-800 transition-colors">
+            &larr; Ayarlara Geri Dön
+        </a>
+    </div>
+
+    <!-- Başarı Mesajı -->
+    {% if request.query_params.get("success") %}
+    <div id="success-alert" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow" role="alert">
+        <div class="flex">
+            <div class="py-1"><svg class="fill-current h-6 w-6 text-green-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
+            <div>
+                <p class="font-bold">Başarılı!</p>
+                <p class="text-sm">Rütbe gereksinimleri başarıyla güncellendi.</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        setTimeout(() => {
+            document.getElementById('success-alert').style.display = 'none';
+        }, 5000);
+    </script>
+    {% endif %}
+
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-1">Rütbe PV Gereksinimleri</h2>
+            <p class="text-sm text-gray-600 mb-6">
+                Bir kullanıcının belirli bir kariyere ulaşması için gereken minimum Sol ve Sağ Kol PV (Puan Değeri) miktarlarını buradan düzenleyebilirsiniz.
+            </p>
+
+            <form action="/admin/ayarlar/rutbeler" method="post">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Rütbe Adı
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Gerekli Sol PV
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Gerekli Sağ PV
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for rutbe in rutbeler %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-900">{{ rutbe.ad }}</div>
+                                        <input type="hidden" name="rutbe_id_{{ loop.index }}" value="{{ rutbe.id }}">
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if rutbe.ad == 'Distribütör' %}
+                                        <input type="number" value="{{ rutbe.sol_pv_gereksinimi }}" class="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-md border-gray-300 focus:ring-0 focus:outline-none" readonly>
+                                    {% else %}
+                                        <input type="number" name="sol_pv_{{ loop.index }}" value="{{ rutbe.sol_pv_gereksinimi }}" class="w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition">
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if rutbe.ad == 'Distribütör' %}
+                                        <input type="number" value="{{ rutbe.sag_pv_gereksinimi }}" class="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-md border-gray-300 focus:ring-0 focus:outline-none" readonly>
+                                    {% else %}
+                                        <input type="number" name="sag_pv_{{ loop.index }}" value="{{ rutbe.sag_pv_gereksinimi }}" class="w-full px-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition">
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-gray-50 px-6 py-4 text-right">
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        Değişiklikleri Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -63,6 +63,13 @@ class Ayarlar(Base):
     anahtar = Column(String, unique=True, index=True) # Örn: 'referans_orani'
     deger = Column(Float) # Örn: 0.40
 
+class Rutbe(Base):
+    __tablename__ = "rutbeler"
+    id = Column(Integer, primary_key=True, index=True)
+    ad = Column(String(100), unique=True, nullable=False, index=True)
+    sol_pv_gereksinimi = Column(Integer, default=0)
+    sag_pv_gereksinimi = Column(Integer, default=0)
+
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean
 

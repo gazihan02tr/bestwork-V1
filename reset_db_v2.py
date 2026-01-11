@@ -66,6 +66,23 @@ nesil_ayarlari = [
 ]
 db.add_all(nesil_ayarlari)
 
+# 6. Rütbe Gereksinimleri
+print("-> Varsayılan rütbe gereksinimleri oluşturuluyor...")
+rutbe_gereksinimleri = [
+    models.Rutbe(ad="Distribütör", sol_pv_gereksinimi=0, sag_pv_gereksinimi=0),
+    models.Rutbe(ad="Platinum", sol_pv_gereksinimi=5000, sag_pv_gereksinimi=5000),
+    models.Rutbe(ad="Pearl", sol_pv_gereksinimi=15000, sag_pv_gereksinimi=15000),
+    models.Rutbe(ad="Sapphire", sol_pv_gereksinimi=50000, sag_pv_gereksinimi=50000),
+    models.Rutbe(ad="Ruby", sol_pv_gereksinimi=100000, sag_pv_gereksinimi=100000),
+    models.Rutbe(ad="Emerald", sol_pv_gereksinimi=250000, sag_pv_gereksinimi=250000),
+    models.Rutbe(ad="Diamond", sol_pv_gereksinimi=500000, sag_pv_gereksinimi=500000),
+    models.Rutbe(ad="Double Diamond", sol_pv_gereksinimi=1000000, sag_pv_gereksinimi=1000000),
+    models.Rutbe(ad="Triple Diamond", sol_pv_gereksinimi=2500000, sag_pv_gereksinimi=2500000),
+    models.Rutbe(ad="President", sol_pv_gereksinimi=5000000, sag_pv_gereksinimi=5000000),
+    models.Rutbe(ad="Double President", sol_pv_gereksinimi=10000000, sag_pv_gereksinimi=10000000),
+]
+db.add_all(rutbe_gereksinimleri)
+
 db.commit()
 db.close()
 

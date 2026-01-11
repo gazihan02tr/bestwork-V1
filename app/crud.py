@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 from . import models, schemas
-from .utils import RUTBE_GEREKSINIMLERI
 from fastapi import HTTPException
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -90,30 +89,28 @@ def en_alt_bos_yeri_bul(db: Session, parent_id: int, tercih_kol: str):
 
 def rutbe_guncelle(db: Session, kullanici: models.Kullanici):
     """
-    Kullanıcının toplam cirosuna (toplam_sol_pv, toplam_sag_pv) bakarak 
-    hak ettiği en yüksek rütbeyi atar.
+    Kullanıcının toplam cirosuna (toplam_sol_pv, toplam_sag_pv) bakarak
+    veritabanındaki rütbe tablosuna göre hak ettiği en yüksek rütbeyi atar.
     """
     if not kullanici:
         return
-        
+
     current_sol = kullanici.toplam_sol_pv or 0
     current_sag = kullanici.toplam_sag_pv or 0
+
+    yeni_rutbe_adi = "Distribütör"  # Varsayılan rütbe
+
+    # Veritabanından tüm rütbeleri çek (PV'ye göre sıralı)
+    olasi_rutbeler = db.query(models.Rutbe).order_by(models.Rutbe.sol_pv_gereksinimi).all()
+
+    # Kullanıcının PV'sine uyan en yüksek rütbeyi bul
+    for rutbe in olasi_rutbeler:
+        if current_sol >= rutbe.sol_pv_gereksinimi and current_sag >= rutbe.sag_pv_gereksinimi:
+            yeni_rutbe_adi = rutbe.ad
     
-    yeni_rutbe = "Distribütör" # Default
-    
-    # RUTBE_GEREKSINIMLERI küçükten büyüğe sıralı olduğu için
-    # her sağlayan rütbeyi atayabiliriz, döngü sonunda en yüksek olanda kalır.
-    for r in RUTBE_GEREKSINIMLERI:
-        gerekli_sol = r["sol_pv"]
-        gerekli_sag = r["sag_pv"]
-        rutbe_adi = r["ad"]
-        
-        if current_sol >= gerekli_sol and current_sag >= gerekli_sag:
-            yeni_rutbe = rutbe_adi
-            
-    # Eğer rütbe değiştiyse güncelle
-    if kullanici.rutbe != yeni_rutbe:
-        kullanici.rutbe = yeni_rutbe
+    # Eğer kullanıcının rütbesi değiştiyse, veritabanını güncelle
+    if kullanici.rutbe != yeni_rutbe_adi:
+        kullanici.rutbe = yeni_rutbe_adi
 
 # --- 2. FONKSİYON: PUAN DAĞITIM MOTORU (Recursive yerine Iterative) ---
 def ekonomiyi_tetikle(db: Session, baslangic_id: int, satis_pv: int, satis_cv: float):
@@ -644,6 +641,28 @@ def get_dashboard_data(user_id: int, db: Session):
         models.Kullanici.referans_id == user_id,
         models.Kullanici.parent_id == None
     ).count()
+
+# --- YENİ: RÜTBE YÖNETİMİ CRUD ---
+
+def get_rutbeler(db: Session):
+    """Veritabanındaki tüm rütbeleri, en düşük PV'den en yükseğe doğru sıralı getirir."""
+    return db.query(models.Rutbe).order_by(models.Rutbe.sol_pv_gereksinimi).all()
+
+def update_rutbe(db: Session, rutbe_id: int, sol_pv: int, sag_pv: int):
+    """Belirli bir rütbenin PV gereksinimlerini günceller."""
+    db_rutbe = db.query(models.Rutbe).filter(models.Rutbe.id == rutbe_id).first()
+    if not db_rutbe:
+        raise HTTPException(status_code=404, detail="Rütbe bulunamadı")
+
+    # "Distribütör" rütbesinin PV'si değiştirilemez olmalı (güvenlik)
+    if db_rutbe.ad == "Distribütör":
+        raise HTTPException(status_code=400, detail="Distribütör rütbesinin PV gereksinimleri değiştirilemez.")
+
+    db_rutbe.sol_pv_gereksinimi = sol_pv
+    db_rutbe.sag_pv_gereksinimi = sag_pv
+    db.commit()
+    db.refresh(db_rutbe)
+    return db_rutbe
 
     # Rütbe Mantığı
     rutbeler = [
