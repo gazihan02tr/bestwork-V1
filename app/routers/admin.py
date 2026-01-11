@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from starlette.responses import RedirectResponse, HTMLResponse
 import subprocess
 import os
+import json
+import time
 from app import models, crud, schemas
 from app.dependencies import get_db, templates
 
@@ -72,8 +74,30 @@ def bestsoft_dashboard(request: Request, db: Session = Depends(get_db)):
 # Yardımcı Fonksiyon: Güncelleme Kontrolü
 def check_for_updates():
     try:
-        # Git fetch işlemi (timeout ile)
-        subprocess.run(["git", "fetch"], check=True, timeout=2, capture_output=True)
+        should_fetch = True
+        info_file = "update_check_info.json"
+        
+        # 8 Saatlik Kontrol (28800 saniye)
+        if os.path.exists(info_file):
+            try:
+                with open(info_file, "r") as f:
+                    data = json.load(f)
+                    last_check = data.get("last_check", 0)
+                    if time.time() - last_check < 28800:
+                        should_fetch = False
+            except:
+                pass
+        
+        if should_fetch:
+            # Git fetch işlemi (timeout ile)
+            subprocess.run(["git", "fetch"], check=True, timeout=10, capture_output=True)
+            # Zaman damgasını kaydet
+            try:
+                with open(info_file, "w") as f:
+                    json.dump({"last_check": time.time()}, f)
+            except:
+                pass
+
         # Status kontrolü
         result = subprocess.run(["git", "status", "-uno"], check=True, capture_output=True, text=True)
         if "Your branch is behind" in result.stdout:
@@ -81,6 +105,35 @@ def check_for_updates():
     except:
         pass
     return False
+
+def get_system_version():
+    try:
+        readme_path = os.path.join(os.getcwd(), "README.md")
+        if os.path.exists(readme_path):
+            with open(readme_path, "r", encoding="utf-8") as f:
+                import re
+                content = f.read()
+                match = re.search(r"### (v\d+(\.\d+)+)", content)
+                if match:
+                    return match.group(1)
+    except:
+        pass
+    return "v?.?.?"
+
+def get_remote_system_version():
+    try:
+        # Fetch remote details first if we haven't recently (relies on check_for_updates having run usually, but safe to run)
+        # Assuming origin/main is the target. Better to use @{u} if configured.
+        result = subprocess.run(["git", "show", "@{u}:README.md"], capture_output=True, text=True)
+        if result.returncode == 0:
+            import re
+            content = result.stdout
+            match = re.search(r"### (v\d+(\.\d+)+)", content)
+            if match:
+                return match.group(1)
+    except:
+        pass
+    return None
 
 # ADMIN AYARLAR SAYFASI
 @router.get("/admin/ayarlar")
@@ -90,8 +143,27 @@ def admin_ayarlar_page(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/bestsoft", status_code=303)
         
     update_available = check_for_updates()
+    current_version = get_system_version()
+    remote_version = None
+
+    # Try to get remote version to see if there is a version mismatch, 
+    # even if git status doesn't explicitly say "behind" (e.g. local changes state)
+    try:
+        remote_v = get_remote_system_version()
+        if remote_v:
+            remote_version = remote_v
+            # If we see a newer version on remote, consider update available for UI purposes
+            if remote_version != current_version:
+                 update_available = True
+    except:
+        pass
     
-    return templates.TemplateResponse("admin_ayarlar.html", {"request": request, "update_available": update_available})
+    return templates.TemplateResponse("admin_ayarlar.html", {
+        "request": request, 
+        "update_available": update_available,
+        "current_version": current_version,
+        "remote_version": remote_version
+    })
 
 
 # ADMIN KONTROL SAYFASI (Eski Rota - Yönlendirme)
@@ -282,6 +354,15 @@ def admin_ayarlar_guncelleme_check(request: Request):
     try:
         # Run git fetch
         subprocess.run(["git", "fetch"], check=True, capture_output=True)
+        
+        # Manuel kontrol yapıldığı için zamanlayıcıyı güncelle
+        try:
+            info_file = "update_check_info.json"
+            with open(info_file, "w") as f:
+                json.dump({"last_check": time.time()}, f)
+        except:
+            pass
+
         # Check status
         result = subprocess.run(["git", "status", "-uno"], check=True, capture_output=True, text=True)
         raw_output = result.stdout

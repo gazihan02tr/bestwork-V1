@@ -2,12 +2,10 @@
 
 ## Sürüm Geçmişi
 
-> **Sürüm Numaralandırma Mantığı (Versioning):**
-> **vYY.M.R** (Örn: v26.1.0)
-> *   **YY (Yıl):** İlk hane yılı temsil eder (26 = 2026).
-> *   **M (Ay):** İkinci hane, güncellemenin yayınlandığı ayı temsil eder (1 = Ocak).
-> *   **R (Revizyon):** Son hane, o ay içinde yapılan kaçıncı güncelleme olduğunu gösterir.
-### v26.1.1 (11.01.2026) - Yönetim Paneli Yapısal Dönüşümü & Güncelleme Sistemi
+### v26.1.2 (11.01.2026) - Boş Demo
+Bu sürüm, sistem güncelleme altyapısını test etmek amacıyla oluşturulmuş boş bir demo sürümüdür.
+
+### v26.1.1 (11.01.2026) - Yönetim Paneli Yapısal Dönüşümü & Güncelleme Sistemi.
 
 Bu güncelleme ile yönetim paneli modüler bir yapıya kavuşturulmuş, ayarlar dashboard'dan ayrılarak kendi özel alanına taşınmıştır. Ayrıca sistemin uzaktan yönetimi ve güncellenebilirliği için entegre Git altyapısı kurulmuştur.
 

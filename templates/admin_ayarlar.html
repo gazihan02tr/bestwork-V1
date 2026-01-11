@@ -163,17 +163,20 @@
                         </button>
 
                         <a href="/admin/ayarlar/guncelleme" class="h-auto py-3 bg-md-surface border border-md-outlineVariant/50 rounded-xl flex items-center px-4 gap-3 hover:bg-black/5 transition-colors text-left group relative">
-                            {% if update_available %}
-                            <div class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse z-10 border border-white">
-                                GÜNCELLEME VAR
-                            </div>
-                            {% endif %}
                             <div class="w-10 h-10 shrink-0 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
                                 <span class="material-symbols-outlined group-hover:scale-110 transition-transform">system_update</span>
                             </div>
                             <div class="flex flex-col min-w-0">
-                                <span class="text-[15px] font-medium text-md-onSurface truncate">Sistem Güncellemeleri</span>
-                                <span class="text-[12px] text-md-onSurfaceVariant truncate">Versiyon ve güncelleme</span>
+                                <span class="text-[15px] font-medium text-md-onSurface truncate">Sistem Güncelle</span>
+                                {% if update_available and remote_version %}
+                                    <div class="flex items-center gap-1 text-[12px] font-mono truncate">
+                                        <span class="text-md-onSurfaceVariant">{{ current_version }}</span>
+                                        <span class="text-md-outlineVariant">→</span>
+                                        <span class="text-green-600 font-bold animate-pulse">{{ remote_version }}</span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-[12px] font-mono text-md-onSurfaceVariant truncate">{{ current_version }}</span>
+                                {% endif %}
                             </div>
                             <span class="material-symbols-outlined ml-auto text-md-outlineVariant">chevron_right</span>
                         </a>
