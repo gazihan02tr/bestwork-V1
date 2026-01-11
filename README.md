@@ -2,6 +2,10 @@
 
 ## Sürüm Geçmişi
 
+### v26.1.3 (11.01.2026) - Boş Demo
+Bu sürüm, sistem güncelleme altyapısını test etmek amacıyla oluşturulmuş boş bir demo sürümüdür.
+
+
 ### v26.1.2 (11.01.2026) - Boş Demo
 Bu sürüm, sistem güncelleme altyapısını test etmek amacıyla oluşturulmuş boş bir demo sürümüdür.
 
@@ -242,3 +246,4 @@ Bu maddeler sistemin büyüme stratejisine göre sıraya alınmıştır:
 - [ ] **Asenkron Puan Dağıtımı (Celery + Redis):** Anlık 10.000+ işlem hacmine ulaşıldığında, puan hesaplamalarının arka plana (Background Worker) taşınması.
 - [ ] **Mobil Uygulama API:** React Native veya Flutter entegrasyonu için REST API endpoint'lerinin genişletilmesi.
 - [ ] **Çoklu Dil Desteği (i18n):** İngilizce, Almanca ve Arapça dil seçeneklerinin eklenmesi.
+# bestwork-bestsoft
